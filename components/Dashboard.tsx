@@ -114,12 +114,28 @@ export default function Dashboard() {
             <header className="px-6 pt-14 pb-4 flex justify-between items-center">
                 <h1 className="text-3xl font-bold">Today</h1>
                 <div className="flex items-center gap-2">
+                    <HistoryDrawer />
+                    <SettingsDialog />
                     <form action={logout}>
-                        <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-destructive">
-                            Start Over / Logout
+                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
+                            <span className="sr-only">Logout</span>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                <polyline points="16 17 21 12 16 7" />
+                                <line x1="21" x2="9" y1="12" y2="12" />
+                            </svg>
                         </Button>
                     </form>
-                    <SettingsDialog />
                 </div>
             </header>
 
@@ -187,7 +203,6 @@ export default function Dashboard() {
             {/* Floating Action Button for Global Add */}
             <div className="fixed bottom-8 left-0 right-0 flex justify-center z-50 pointer-events-none">
                 <div className="pointer-events-auto shadow-2xl rounded-full">
-                    <HistoryDrawer />
                     <InputDrawer />
                 </div>
             </div>

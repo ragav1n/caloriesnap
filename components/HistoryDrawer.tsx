@@ -119,45 +119,67 @@ export function HistoryDrawer() {
     return (
         <Drawer>
             <DrawerTrigger asChild>
-                <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50">
-                    <CalendarDays className="h-6 w-6" />
+                <Button variant="outline" size="icon" className="rounded-full h-10 w-10 bg-background/50 backdrop-blur-sm border-muted shadow-sm hover:bg-background">
+                    <CalendarDays className="h-5 w-5 text-muted-foreground" />
                 </Button>
             </DrawerTrigger>
-            <DrawerContent className="h-[85vh]">
-                <DrawerHeader>
-                    <DrawerTitle>
-                        {view === 'calendar' ? 'History' : format(date!, 'MMMM d, yyyy')}
+            <DrawerContent className="h-[90vh]">
+                <DrawerHeader className="text-left px-6 pt-6">
+                    <DrawerTitle className="text-2xl font-bold">
+                        {view === 'calendar' ? 'History' : format(date!, 'MMMM d')}
                     </DrawerTitle>
                     <DrawerDescription>
                         {view === 'calendar'
-                            ? 'Your calorie journey at a glance.'
-                            : 'Detailed breakdown of your meals.'}
+                            ? 'Your daily progress overview.'
+                            : 'Detailed log for this day.'}
                     </DrawerDescription>
                 </DrawerHeader>
 
-                <div className="p-4 flex flex-col items-center flex-1 overflow-hidden">
+                <div className="px-6 flex flex-col items-center flex-1 overflow-hidden w-full max-w-md mx-auto">
                     {view === 'calendar' ? (
-                        <div className="flex flex-col items-center w-full">
+                        <div className="flex flex-col items-center w-full space-y-6">
                             <Calendar
                                 mode="single"
                                 selected={date}
                                 onSelect={handleDateSelect}
                                 onMonthChange={handleMonthChange}
-                                className="rounded-md border bg-card text-card-foreground shadow-sm"
+                                className="rounded-xl border-none bg-transparent shadow-none w-full p-0"
+                                classNames={{
+                                    month: "space-y-4 w-full",
+                                    caption: "flex justify-center pt-1 relative items-center mb-4",
+                                    caption_label: "text-lg font-bold",
+                                    nav: "space-x-1 flex items-center",
+                                    nav_button: "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 transition-opacity",
+                                    nav_button_previous: "absolute left-1",
+                                    nav_button_next: "absolute right-1",
+                                    table: "w-full border-collapse space-y-1",
+                                    head_row: "flex justify-between w-full mb-2",
+                                    head_cell: "text-muted-foreground rounded-md w-10 font-medium text-[0.8rem] uppercase",
+                                    row: "flex w-full mt-2 justify-between",
+                                    cell: "h-10 w-10 text-center text-sm p-0 mx-auto relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                                    day: "h-10 w-10 p-0 font-normal aria-selected:opacity-100 flex items-center justify-center rounded-full hover:bg-accent hover:text-accent-foreground transition-colors",
+                                    day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                                    day_today: "bg-accent text-accent-foreground",
+                                    day_outside: "text-muted-foreground opacity-50",
+                                    day_disabled: "text-muted-foreground opacity-50",
+                                    day_hidden: "invisible",
+                                }}
                                 modifiers={modifiers}
                                 modifiersClassNames={{
-                                    overBudget: "text-red-500 font-bold relative after:content-['•'] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:text-red-500 after:text-xs",
-                                    underBudget: "text-green-500 font-bold relative after:content-['•'] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:text-green-500 after:text-xs"
+                                    overBudget: "after:content-[''] after:absolute after:bottom-1.5 after:w-1.5 after:h-1.5 after:rounded-full after:bg-destructive",
+                                    underBudget: "after:content-[''] after:absolute after:bottom-1.5 after:w-1.5 after:h-1.5 after:rounded-full after:bg-green-500"
                                 }}
                             />
-                            <div className="mt-4 flex gap-4 text-sm text-muted-foreground">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                                    <span>Goal Met</span>
+
+                            {/* Legend */}
+                            <div className="w-full grid grid-cols-2 gap-3">
+                                <div className="flex items-center gap-3 p-3 rounded-lg bg-card border shadow-sm">
+                                    <div className="w-3 h-3 rounded-full bg-green-500 shrink-0" />
+                                    <span className="text-sm font-medium">Goal Met</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-red-500" />
-                                    <span>Over Budget</span>
+                                <div className="flex items-center gap-3 p-3 rounded-lg bg-card border shadow-sm">
+                                    <div className="w-3 h-3 rounded-full bg-destructive shrink-0" />
+                                    <span className="text-sm font-medium">Over Limit</span>
                                 </div>
                             </div>
                         </div>

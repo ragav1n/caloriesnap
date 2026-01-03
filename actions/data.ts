@@ -46,7 +46,7 @@ export const updateUserProfile = async (id: string, updates: Partial<Profile>) =
     const { error } = await supabase.from('profiles').update(updates).eq('id', id);
 
     if (error) {
-        console.error('Error updating profile:', error);
+        console.error('Error updating profile:', JSON.stringify(error, null, 2));
         return { error };
     }
 
