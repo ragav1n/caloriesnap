@@ -1,0 +1,60 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+
+export async function login(formData: FormData) {
+    const supabase = await createClient()
+
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+
+    const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+    })
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    revalidatePath('/', 'layout')
+    redirect('/')
+}
+
+export async function signup(formData: FormData) {
+    const supabase = await createClient()
+
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+
+    const { error } = await supabase.auth.signUp({
+        email,
+        password,
+    })
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    // Login immediately after signup if auto-confirm is enabled, or redirect to Login with message
+    // Assuming auto-confirm for simplicity in dev, or redirecting to dashboard if session is created
+
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session) {
+        revalidatePath('/', 'layout')
+        redirect('/')
+    } else {
+        // Email confirmation required
+        return { success: 'Check your email to continue sign in process' }
+    }
+}
+
+export async function logout() {
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+    revalidatePath('/', 'layout')
+    redirect('/login')
+}
