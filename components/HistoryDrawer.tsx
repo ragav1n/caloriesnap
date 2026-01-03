@@ -30,9 +30,9 @@ export function HistoryDrawer() {
     const [selectedDayLogs, setSelectedDayLogs] = React.useState<Log[]>([]);
     const [view, setView] = React.useState<'calendar' | 'details'>('calendar');
     const [loading, setLoading] = React.useState(false);
+    const [isOpen, setIsOpen] = React.useState(false);
 
     const profile = useStore((state) => state.profile);
-    const removeLog = useStore((state) => state.removeLog); // We might want to remove from history too
 
     // Fetch monthly summary
     const fetchMonthSummary = async (month: Date) => {
@@ -86,10 +86,12 @@ export function HistoryDrawer() {
         fetchMonthSummary(month);
     };
 
-    // Initial fetch
+    // Fetch monthly summary on open
     React.useEffect(() => {
-        fetchMonthSummary(new Date());
-    }, []);
+        if (isOpen) {
+            fetchMonthSummary(date || new Date());
+        }
+    }, [isOpen]);
 
     const handleDateSelect = (day: Date | undefined) => {
         if (!day) return;
@@ -111,13 +113,8 @@ export function HistoryDrawer() {
         }
     };
 
-    const modifiersStyles = {
-        overBudget: { color: 'var(--destructive)', fontWeight: 'bold' },
-        underBudget: { color: 'var(--primary)', fontWeight: 'bold' }
-    };
-
     return (
-        <Drawer>
+        <Drawer open={isOpen} onOpenChange={setIsOpen}>
             <DrawerTrigger asChild>
                 <Button variant="outline" size="icon" className="rounded-full h-10 w-10 bg-background/50 backdrop-blur-sm border-muted shadow-sm hover:bg-background">
                     <CalendarDays className="h-5 w-5 text-muted-foreground" />
@@ -143,31 +140,11 @@ export function HistoryDrawer() {
                                 selected={date}
                                 onSelect={handleDateSelect}
                                 onMonthChange={handleMonthChange}
-                                className="rounded-xl border-none bg-transparent shadow-none w-full p-0"
-                                classNames={{
-                                    month: "space-y-4 w-full",
-                                    caption: "flex justify-center pt-1 relative items-center mb-4",
-                                    caption_label: "text-lg font-bold",
-                                    nav: "space-x-1 flex items-center",
-                                    nav_button: "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 transition-opacity",
-                                    nav_button_previous: "absolute left-1",
-                                    nav_button_next: "absolute right-1",
-                                    table: "w-full border-collapse space-y-1",
-                                    head_row: "flex justify-between w-full mb-2",
-                                    head_cell: "text-muted-foreground rounded-md w-10 font-medium text-[0.8rem] uppercase",
-                                    row: "flex w-full mt-2 justify-between",
-                                    cell: "h-10 w-10 text-center text-sm p-0 mx-auto relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                                    day: "h-10 w-10 p-0 font-normal aria-selected:opacity-100 flex items-center justify-center rounded-full hover:bg-accent hover:text-accent-foreground transition-colors",
-                                    day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                                    day_today: "bg-accent text-accent-foreground",
-                                    day_outside: "text-muted-foreground opacity-50",
-                                    day_disabled: "text-muted-foreground opacity-50",
-                                    day_hidden: "invisible",
-                                }}
+                                className="rounded-xl border-none shadow-none w-full p-0"
                                 modifiers={modifiers}
                                 modifiersClassNames={{
-                                    overBudget: "after:content-[''] after:absolute after:bottom-1.5 after:w-1.5 after:h-1.5 after:rounded-full after:bg-destructive",
-                                    underBudget: "after:content-[''] after:absolute after:bottom-1.5 after:w-1.5 after:h-1.5 after:rounded-full after:bg-green-500"
+                                    overBudget: "after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-destructive",
+                                    underBudget: "after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-green-500"
                                 }}
                             />
 
