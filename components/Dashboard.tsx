@@ -112,7 +112,10 @@ export default function Dashboard() {
 
             {/* Top Header */}
             <header className="px-6 pt-14 pb-4 flex justify-between items-center">
-                <h1 className="text-3xl font-bold">Today</h1>
+                <div className="flex items-center gap-3">
+                    <img src="/caloriesnap_logo.png" alt="CalorieSnap" className="h-10 w-10 object-contain" />
+                    <h1 className="text-3xl font-bold">Today</h1>
+                </div>
                 <div className="flex items-center gap-2">
                     <HistoryDrawer />
                     <SettingsDialog />

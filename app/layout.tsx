@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: 'CalorieSnap',
   description: 'Your frictionless calorie tracker',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/caloriesnap_logo.png',
+    apple: '/caloriesnap_logo.png',
+  },
 };
 
 export const viewport: Viewport = {
