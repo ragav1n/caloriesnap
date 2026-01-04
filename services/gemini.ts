@@ -14,7 +14,7 @@ export async function analyzeImage(base64Image: string): Promise<FoodItem | null
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite-preview-02-05' });
 
         const prompt =
             'Identify the food in this image and estimate the calories. Return ONLY a JSON object: { "food_name": string, "calories": number, "protein": number, "carbs": number, "fats": number, "confidence": string }. Do not include markdown formatting or backticks.';
@@ -31,10 +31,13 @@ export async function analyzeImage(base64Image: string): Promise<FoodItem | null
         const response = await result.response;
         const text = response.text();
 
-        // Clean up the response if it contains markdown code blocks
-        const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        // Robust JSON extraction
+        const jsonMatch = text.match(/\{[\s\S]*?\}/);
+        if (!jsonMatch) {
+            throw new Error("No JSON found in response");
+        }
 
-        return JSON.parse(jsonString) as FoodItem;
+        return JSON.parse(jsonMatch[0]) as FoodItem;
     } catch (error) {
         console.error('Gemini Analysis Error:', error);
         return null;

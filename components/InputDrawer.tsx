@@ -72,6 +72,10 @@ export function InputDrawer() {
                     setValue('protein', result.protein || 0);
                     setValue('carbs', result.carbs || 0);
                     setValue('fats', result.fats || 0);
+                } else {
+                    // Reset if analysis failed
+                    setCapturedImage(null);
+                    alert("Could not identify food. Please try again or enter manually.");
                 }
                 setAnalyzing(false);
             };
@@ -205,7 +209,6 @@ export function InputDrawer() {
                                 <input
                                     type="file"
                                     accept="image/*"
-                                    capture="environment"
                                     className="absolute inset-0 opacity-0 cursor-pointer"
                                     onChange={onFileChange}
                                 />

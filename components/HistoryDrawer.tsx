@@ -132,7 +132,7 @@ export function HistoryDrawer() {
                     </DrawerDescription>
                 </DrawerHeader>
 
-                <div className="px-6 flex flex-col items-center flex-1 overflow-hidden w-full max-w-md mx-auto">
+                <div className="px-6 flex flex-col items-center flex-1 overflow-y-auto w-full max-w-md mx-auto">
                     {view === 'calendar' ? (
                         <div className="flex flex-col items-center w-full space-y-6">
                             <Calendar
