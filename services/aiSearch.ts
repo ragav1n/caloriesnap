@@ -4,7 +4,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { FoodItem } from '@/types';
 
 // Initialize with your existing key
-const apiKey = process.env.GEMINI_API_KEY || '';
+const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
 // Using the confirmed working model
