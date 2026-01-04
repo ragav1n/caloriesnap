@@ -57,15 +57,58 @@ export function InputDrawer() {
         }
     };
 
+    const compressImage = async (file: File): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 512;
+                    const scaleSize = MAX_WIDTH / img.width;
+                    const width = Math.min(MAX_WIDTH, img.width);
+                    const height = img.height * (img.width > MAX_WIDTH ? scaleSize : 1);
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+
+                    // Compress to JPEG at 70% quality and get as Blob
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            resolve(blob);
+                        } else {
+                            reject(new Error("Canvas to Blob failed"));
+                        }
+                    }, 'image/jpeg', 0.7);
+                };
+                img.onerror = (error) => reject(error);
+            };
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
     const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-                const base64 = reader.result as string;
-                setCapturedImage(base64);
+            try {
+                // Show preview immediately for better UX
+                const previewUrl = URL.createObjectURL(file);
+                setCapturedImage(previewUrl);
+
                 setAnalyzing(true);
-                const result = await analyzeImage(base64);
+                const compressedBlob = await compressImage(file);
+
+                const formData = new FormData();
+                formData.append('image', compressedBlob, 'food.jpg');
+
+                // @ts-ignore - Temporary ignore until server action signature is updated
+                const result = await analyzeImage(formData);
+
                 if (result) {
                     setValue('food_name', result.food_name);
                     setValue('calories', result.calories);
@@ -73,13 +116,16 @@ export function InputDrawer() {
                     setValue('carbs', result.carbs || 0);
                     setValue('fats', result.fats || 0);
                 } else {
-                    // Reset if analysis failed
                     setCapturedImage(null);
                     alert("Could not identify food. Please try again or enter manually.");
                 }
+            } catch (error) {
+                console.error("Error processing image:", error);
+                alert("Error processing image. Please try another one.");
+                setCapturedImage(null);
+            } finally {
                 setAnalyzing(false);
-            };
-            reader.readAsDataURL(file);
+            }
         }
     };
 
@@ -218,7 +264,7 @@ export function InputDrawer() {
                             </p>
                             {analyzing && (
                                 <div className="flex items-center gap-2 text-primary animate-pulse">
-                                    <Loader2 className="animate-spin" /> Analyzing with Gemini...
+                                    <Loader2 className="animate-spin" /> Analyzing...
                                 </div>
                             )}
 

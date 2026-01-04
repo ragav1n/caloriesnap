@@ -1,28 +1,57 @@
 'use server';
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { FoodItem } from '@/types';
 
 // Initialize Gemini
 const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
-export async function analyzeImage(base64Image: string): Promise<FoodItem | null> {
+// Define the schema for structured output (faster & more reliable)
+const schema: SchemaType | any = {
+    description: "Food analysis results",
+    type: SchemaType.OBJECT,
+    properties: {
+        food_name: { type: SchemaType.STRING, description: "Name of the food item", nullable: false },
+        calories: { type: SchemaType.NUMBER, description: "Estimated calories", nullable: false },
+        protein: { type: SchemaType.NUMBER, description: "Protein in grams", nullable: false },
+        carbs: { type: SchemaType.NUMBER, description: "Carbohydrates in grams", nullable: false },
+        fats: { type: SchemaType.NUMBER, description: "Fats in grams", nullable: false },
+        confidence: { type: SchemaType.STRING, description: "Confidence level", nullable: false },
+    },
+    required: ["food_name", "calories", "protein", "carbs", "fats", "confidence"],
+};
+
+export async function analyzeImage(formData: FormData): Promise<FoodItem | null> {
     if (!apiKey) {
         console.warn('Gemini API Key is missing');
         return null;
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+        const file = formData.get('image') as File;
+        if (!file) {
+            throw new Error("No image file provided");
+        }
 
-        const prompt =
-            'Identify the food in this image and estimate the calories. Return ONLY a JSON object: { "food_name": string, "calories": number, "protein": number, "carbs": number, "fats": number, "confidence": string }. Do not include markdown formatting or backticks.';
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const base64Image = buffer.toString('base64');
 
-        // Remove header if present (e.g., "data:image/jpeg;base64,")
+        const model = genAI.getGenerativeModel({
+            model: 'gemini-2.5-flash',
+            generationConfig: {
+                // Return schema-validated JSON directly
+                responseMimeType: "application/json",
+                responseSchema: schema,
+            }
+        });
+
+        const prompt = 'Identify the food in this image and estimate nutritional content.';
+
         const imagePart = {
             inlineData: {
-                data: base64Image.split(',')[1] || base64Image,
+                data: base64Image,
                 mimeType: 'image/jpeg',
             },
         };
@@ -31,13 +60,8 @@ export async function analyzeImage(base64Image: string): Promise<FoodItem | null
         const response = await result.response;
         const text = response.text();
 
-        // Robust JSON extraction
-        const jsonMatch = text.match(/\{[\s\S]*?\}/);
-        if (!jsonMatch) {
-            throw new Error("No JSON found in response");
-        }
+        return JSON.parse(text) as FoodItem;
 
-        return JSON.parse(jsonMatch[0]) as FoodItem;
     } catch (error) {
         console.error('Gemini Analysis Error:', error);
         return null;
