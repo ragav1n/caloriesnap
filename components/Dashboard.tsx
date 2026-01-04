@@ -12,12 +12,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DataSync } from '@/components/DataSync';
+import { Loader } from '@/components/ui/Loader';
 import { deleteUserLog } from '@/actions/data';
 
 import { logout } from '@/app/auth/actions';
 
 export default function Dashboard() {
     const { logs, profile, setProfile } = useStore();
+    const [loading, setLoading] = React.useState(true);
+    const [mounted, setMounted] = React.useState(true);
+
+    // Initial Loading Simulation with Fade Out
+    useEffect(() => {
+        // Simulate async check or data fetching
+        const timer = setTimeout(() => {
+            setLoading(false); // Start fade out
+
+            // Remove from DOM after transition completes (700ms matches Loader duration)
+            setTimeout(() => {
+                setMounted(false);
+            }, 700);
+        }, 2000);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     // Mock profile setup if empty
     useEffect(() => {
@@ -106,8 +124,15 @@ export default function Dashboard() {
         );
     }
 
+    if (!profile) return null; // Or some fallback while profile inits
+
     return (
-        <div className="min-h-screen bg-background pb-24 text-foreground">
+        <div className="min-h-screen bg-background pb-24 text-foreground relative">
+            {/* Loader Overlay */}
+            {mounted && (
+                <Loader className={loading ? 'opacity-100' : 'opacity-0 pointer-events-none'} />
+            )}
+
             <DataSync />
 
             {/* Top Header */}
