@@ -14,7 +14,7 @@ export async function analyzeImage(base64Image: string): Promise<FoodItem | null
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite-preview-02-05' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
         const prompt =
             'Identify the food in this image and estimate the calories. Return ONLY a JSON object: { "food_name": string, "calories": number, "protein": number, "carbs": number, "fats": number, "confidence": string }. Do not include markdown formatting or backticks.';

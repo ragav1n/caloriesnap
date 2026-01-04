@@ -102,13 +102,19 @@ export function HistoryDrawer() {
     // Modifiers for the calendar
     const modifiers = {
         overBudget: (date: Date) => {
-            const key = format(date, 'yyyy-MM-dd');
-            const total = summaries[key];
+            const dateKey = format(date, 'yyyy-MM-dd');
+            const todayKey = format(new Date(), 'yyyy-MM-dd');
+            if (dateKey > todayKey) return false;
+
+            const total = summaries[dateKey];
             return total > (profile?.daily_calorie_goal || 2000);
         },
         underBudget: (date: Date) => {
-            const key = format(date, 'yyyy-MM-dd');
-            const total = summaries[key];
+            const dateKey = format(date, 'yyyy-MM-dd');
+            const todayKey = format(new Date(), 'yyyy-MM-dd');
+            if (dateKey > todayKey) return false;
+
+            const total = summaries[dateKey];
             return total !== undefined && total <= (profile?.daily_calorie_goal || 2000);
         }
     };
@@ -132,31 +138,42 @@ export function HistoryDrawer() {
                     </DrawerDescription>
                 </DrawerHeader>
 
-                <div className="px-6 flex flex-col items-center flex-1 overflow-y-auto w-full max-w-md mx-auto">
+                <div className="px-6 flex flex-col items-center flex-1 overflow-y-auto w-full max-w-md mx-auto pb-10">
                     {view === 'calendar' ? (
-                        <div className="flex flex-col items-center w-full space-y-6">
-                            <Calendar
-                                mode="single"
-                                selected={date}
-                                onSelect={handleDateSelect}
-                                onMonthChange={handleMonthChange}
-                                className="rounded-xl border-none shadow-none w-full p-0"
-                                modifiers={modifiers}
-                                modifiersClassNames={{
-                                    overBudget: "after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-destructive",
-                                    underBudget: "after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-green-500"
-                                }}
-                            />
+                        <div className="flex flex-col items-center w-full shrink-0 gap-6 pb-24">
+                            {/* Calendar Card */}
+                            <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-2xl shadow-xl w-full">
+                                <Calendar
+                                    mode="single"
+                                    selected={date}
+                                    onSelect={handleDateSelect}
+                                    onMonthChange={handleMonthChange}
+                                    className="w-full flex justify-center"
+                                    modifiers={modifiers}
+                                    modifiersClassNames={{
+                                        overBudget: "after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-destructive",
+                                        underBudget: "after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-green-500"
+                                    }}
+                                    classNames={{
+                                        month: "space-y-4 w-full",
+                                        table: "w-full border-collapse space-y-1",
+                                        head_row: "flex w-full justify-between",
+                                        row: "flex w-full mt-2 justify-between",
+                                        cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                                        day: "h-10 w-10 p-0 font-normal aria-selected:opacity-100 hover:bg-gray-800 rounded-full transition-colors",
+                                    }}
+                                />
+                            </div>
 
-                            {/* Legend */}
-                            <div className="w-full grid grid-cols-2 gap-3">
-                                <div className="flex items-center gap-3 p-3 rounded-lg bg-card border shadow-sm">
-                                    <div className="w-3 h-3 rounded-full bg-green-500 shrink-0" />
-                                    <span className="text-sm font-medium">Goal Met</span>
+                            {/* Legend (Pills) */}
+                            <div className="flex flex-wrap justify-center gap-3 w-full mt-4">
+                                <div className="flex items-center gap-2 px-4 py-2 bg-gray-900 border border-gray-800 rounded-full shadow-sm">
+                                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                                    <span className="text-xs font-medium text-gray-300">Goal Met</span>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 rounded-lg bg-card border shadow-sm">
-                                    <div className="w-3 h-3 rounded-full bg-destructive shrink-0" />
-                                    <span className="text-sm font-medium">Over Limit</span>
+                                <div className="flex items-center gap-2 px-4 py-2 bg-gray-900 border border-gray-800 rounded-full shadow-sm">
+                                    <div className="w-3 h-3 bg-destructive rounded-full" />
+                                    <span className="text-xs font-medium text-gray-300">Over Limit</span>
                                 </div>
                             </div>
                         </div>
