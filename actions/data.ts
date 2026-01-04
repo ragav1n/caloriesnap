@@ -7,18 +7,20 @@ import { Log, Profile } from '@/types';
 // OR we can import the store directly if we want to centralize logic.
 // Zustand store can be used outside components via getState() / setState()
 
+import { FoodLogSchema } from '@/lib/schemas';
+
+// ... (helper comments)
+
 export const addUserLog = async (log: Log) => {
-    const { error } = await supabase.from('logs').insert([{
-        id: log.id,
-        user_id: log.user_id,
-        food_name: log.food_name,
-        calories: log.calories,
-        protein: log.protein,
-        carbs: log.carbs,
-        fats: log.fats,
-        meal_type: log.meal_type,
-        created_at: log.created_at
-    }]);
+
+    const validation = FoodLogSchema.safeParse(log);
+
+    if (!validation.success) {
+        console.error('Validation Error:', validation.error.flatten());
+        return { error: validation.error.errors[0].message };
+    }
+
+    const { error } = await supabase.from('logs').insert([validation.data]);
 
     if (error) {
         console.error('Error adding log:', error);

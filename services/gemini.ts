@@ -4,7 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { FoodItem } from '@/types';
 
 // Initialize Gemini
-const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+const apiKey = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
 export async function analyzeImage(base64Image: string): Promise<FoodItem | null> {
