@@ -55,6 +55,10 @@ export async function signup(formData: FormData) {
     })
 
     if (error) {
+        // Supabase often helps us here, but let's be explicit
+        if (error.message.includes("already registered") || error.code === 'user_already_exists') {
+            return { error: "An account with this email already exists. Please login instead." }
+        }
         return { error: error.message }
     }
 

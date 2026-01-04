@@ -127,7 +127,9 @@ export default function Dashboard() {
     if (!profile) return null; // Or some fallback while profile inits
 
     return (
-        <div className="min-h-screen bg-background pb-24 text-foreground relative">
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-24 text-foreground relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-900/10 via-transparent to-transparent pointer-events-none"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-teal-900/10 via-transparent to-transparent pointer-events-none"></div>
             {/* Loader Overlay */}
             {mounted && (
                 <Loader className={loading ? 'opacity-100' : 'opacity-0 pointer-events-none'} />
