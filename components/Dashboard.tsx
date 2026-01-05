@@ -56,7 +56,11 @@ export default function Dashboard() {
     }, [profile, setProfile]);
 
     // Aggregation Logic
-    const todayLogs = logs; // In real app, filter by today
+    const todayLogs = logs.filter(log => {
+        const logDate = new Date(log.created_at).toDateString();
+        const today = new Date().toDateString();
+        return logDate === today;
+    });
     const consumed = todayLogs.reduce((acc, l) => acc + l.calories, 0);
 
     const macros = todayLogs.reduce((acc, l) => ({
