@@ -1,9 +1,5 @@
 import { z } from 'zod';
 
-export const AuthSchema = z.object({
-    email: z.string().email({ message: "Invalid email address" }),
-    password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-});
 
 export const FoodLogSchema = z.object({
     id: z.string().uuid(),
@@ -17,5 +13,4 @@ export const FoodLogSchema = z.object({
     created_at: z.string().datetime(),
 });
 
-export type AuthInput = z.infer<typeof AuthSchema>;
 export type FoodLogInput = z.infer<typeof FoodLogSchema>;

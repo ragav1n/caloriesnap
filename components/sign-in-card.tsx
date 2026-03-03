@@ -30,10 +30,9 @@ export function Component() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setError(null);
-    try {
-      await signInWithGoogle();
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign in with Google');
+    const result = await signInWithGoogle();
+    if (result?.error) {
+      setError(result.error);
       setIsLoading(false);
     }
   };

@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useStore } from '@/store/useStore';
-import { Link } from 'lucide-react';
 import { Profile, Log } from '@/types';
 
 export function DataSync() {

@@ -69,7 +69,7 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    // If user IS logged in and is on login/register, redirect to dashboard
+    // If user IS logged in and is on a safe path (login/callback), redirect to dashboard
     if (user && isSafePath) {
         return NextResponse.redirect(new URL('/', request.url))
     }
