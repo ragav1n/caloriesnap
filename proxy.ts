@@ -8,21 +8,26 @@ const ipMap = new Map<string, { count: number; expires: number }>();
 export async function proxy(request: NextRequest) {
     const ip = (request as any).ip || request.headers.get('x-forwarded-for') || '127.0.0.1';
 
+    // Bypass rate limiting for localhost in development
+    const isLocal = ip === '127.0.0.1' || ip === '::1' || request.nextUrl.hostname === 'localhost';
+
     // Simple in-memory rate limiting
     const now = Date.now();
     const record = ipMap.get(ip);
 
-    if (record) {
-        if (now > record.expires) {
-            ipMap.set(ip, { count: 1, expires: now + RATE_LIMIT_WINDOW });
-        } else {
-            if (record.count >= MAX_REQUESTS) {
-                return new NextResponse('Too Many Requests', { status: 429 });
+    if (!isLocal) {
+        if (record) {
+            if (now > record.expires) {
+                ipMap.set(ip, { count: 1, expires: now + RATE_LIMIT_WINDOW });
+            } else {
+                if (record.count >= MAX_REQUESTS) {
+                    return new NextResponse('Too Many Requests', { status: 429 });
+                }
+                record.count++;
             }
-            record.count++;
+        } else {
+            ipMap.set(ip, { count: 1, expires: now + RATE_LIMIT_WINDOW });
         }
-    } else {
-        ipMap.set(ip, { count: 1, expires: now + RATE_LIMIT_WINDOW });
     }
 
     let response = NextResponse.next({

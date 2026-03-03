@@ -2,10 +2,11 @@
 
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
-import { Camera, Search, Plus, Loader2 } from 'lucide-react';
+import { Camera, Search, Plus, Loader2, Coffee, Sun, Moon, Apple } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FluidDropdown, DropdownItem } from '@/components/ui/fluid-dropdown';
 import PillMorphTabs from '@/components/ui/pill-morph-tabs';
 import {
     Drawer,
@@ -189,15 +190,14 @@ export function InputDrawer() {
                     {/* Meal Selector - Global for all inputs */}
                     <div className="mb-6 space-y-2">
                         <Label className="text-sm font-medium text-muted-foreground ml-1">Meal Type</Label>
-                        <PillMorphTabs
-                            hidePanels
-                            defaultValue={selectedMeal}
-                            onValueChange={(val) => setSelectedMeal(val as any)}
+                        <FluidDropdown 
+                            value={selectedMeal}
+                            onSelect={(item) => setSelectedMeal(item.id as any)}
                             items={[
-                                { value: 'breakfast', label: 'Breakfast' },
-                                { value: 'lunch', label: 'Lunch' },
-                                { value: 'dinner', label: 'Dinner' },
-                                { value: 'snack', label: 'Snack' },
+                                { id: 'breakfast', label: 'Breakfast', icon: Coffee, color: '#f59e0b' },
+                                { id: 'lunch', label: 'Lunch', icon: Sun, color: '#fbbf24' },
+                                { id: 'dinner', label: 'Dinner', icon: Moon, color: '#6366f1' },
+                                { id: 'snack', label: 'Snack', icon: Apple, color: '#ef4444' },
                             ]}
                         />
                     </div>

@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/server'
 
 
 
+import { headers } from 'next/headers'
+
 export async function logout() {
     const supabase = await createClient()
     await supabase.auth.signOut()
@@ -15,11 +17,16 @@ export async function logout() {
 }
 
 export async function signInWithGoogle() {
+    const headerList = await headers()
+    const host = headerList.get('host')
+    const protocol = host?.includes('localhost') ? 'http' : 'https'
+    const currentSiteUrl = `${protocol}://${host}`
+
     const supabase = await createClient()
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+            redirectTo: `${currentSiteUrl}/auth/callback`,
         },
     })
 

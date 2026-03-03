@@ -129,8 +129,8 @@ export function SettingsDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                    <Settings className="h-6 w-6" />
+                <Button variant="outline" size="icon" className="rounded-full h-10 w-10 bg-background/50 backdrop-blur-sm border-muted shadow-sm hover:bg-background">
+                    <Settings className="h-5 w-5 text-muted-foreground" />
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto">

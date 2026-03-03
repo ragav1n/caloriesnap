@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import React, { ReactNode } from "react";
 
 interface AuroraBackgroundProps extends React.HTMLProps<HTMLDivElement> {
-  children: ReactNode;
+  children?: ReactNode;
   showRadialGradient?: boolean;
 }
 
@@ -17,7 +17,7 @@ export const AuroraBackground = ({
     <div className="w-full">
       <div
         className={cn(
-          'relative flex flex-col min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-bg',
+          'relative flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-bg',
           className
         )}
         {...props}

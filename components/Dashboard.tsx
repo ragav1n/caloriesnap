@@ -5,10 +5,16 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useStore } from '@/store/useStore';
 import { Button } from '@/components/ui/button';
-import { Plus, Coffee, Sun, Moon, Apple, HelpCircle, ChevronRight, ChevronDown, Settings } from 'lucide-react';
+import { Plus, Coffee, Sun, Moon, Apple, HelpCircle, ChevronRight, ChevronDown, Settings, LogOut, MoreVertical } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { deleteUserLog } from '@/actions/data';
 
 // Dynamic Imports for Heavy Components
@@ -16,6 +22,7 @@ const CalorieBudgetRing = dynamic(() => import('@/components/CalorieBudgetRing')
 const InputDrawer = dynamic(() => import('@/components/InputDrawer').then(mod => mod.InputDrawer), { ssr: false });
 const HistoryDrawer = dynamic(() => import('@/components/HistoryDrawer').then(mod => mod.HistoryDrawer), { ssr: false });
 const SettingsDialog = dynamic(() => import('@/components/SettingsDialog').then(mod => ({ default: mod.SettingsDialog })), { ssr: false });
+const TrendsDrawer = dynamic(() => import('@/components/TrendsDrawer').then(mod => mod.TrendsDrawer), { ssr: false });
 const DataSync = dynamic(() => import('@/components/DataSync').then(mod => ({ default: mod.DataSync })), { ssr: false });
 const Loader = dynamic(() => import('@/components/ui/Loader').then(mod => mod.Loader), { ssr: false });
 
@@ -110,25 +117,41 @@ export default function Dashboard() {
                         {mealLogs.length > 0 ? (
                             <div className="px-4 pb-4 space-y-2">
                                 {mealLogs.map(log => (
-                                    <div key={log.id} className="flex justify-between items-center text-sm pl-16 py-1 border-t border-border/50 first:border-0">
+                                    <div key={log.id} className="flex justify-between items-center text-sm pl-16 py-1 border-t border-border/50 first:border-0 group">
                                         <span>{log.food_name}</span>
                                         <div className="flex items-center gap-3">
                                             <span className="text-muted-foreground font-medium">{log.calories}</span>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                onClick={() => deleteUserLog(log.id)}
-                                            >
-                                                &times;
-                                            </Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 w-8 p-0 rounded-full opacity-70 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-xl border-white/10 shadow-2xl rounded-xl p-1 min-w-[120px]">
+                                                    <DropdownMenuItem 
+                                                        className="text-red-500 font-semibold focus:text-red-400 focus:bg-destructive/10 rounded-lg cursor-pointer"
+                                                        onClick={() => deleteUserLog(log.id)}
+                                                    >
+                                                        Delete Log
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="px-4 pb-4 pl-16 text-sm text-muted-foreground italic">
-                                No food logged yet.
+                            <div className="px-4 pb-6 flex flex-col items-center justify-center text-center space-y-2">
+                                <div className="h-10 w-10 rounded-full bg-muted/30 flex items-center justify-center">
+                                    <Icon className="h-5 w-5 text-muted-foreground/40" />
+                                </div>
+                                <p className="text-sm text-muted-foreground font-medium italic">
+                                    No {title.toLowerCase()} logged yet
+                                </p>
                             </div>
                         )}
                     </CollapsibleContent>
@@ -140,117 +163,100 @@ export default function Dashboard() {
     if (!profile) return null; // Or some fallback while profile inits
 
     return (
-        <AuroraBackground className="block min-h-screen pb-24 text-foreground relative overflow-y-auto overflow-x-hidden">
-            {/* Loader Overlay */}
-            {mounted && (
-                <Loader className={loading ? 'opacity-100' : 'opacity-0 pointer-events-none'} />
-            )}
-
-            <DataSync />
-
-            {/* Top Header */}
-            <header className="px-6 pt-14 pb-4 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                    <Image src="/caloriesnap_logo.png" alt="CalorieSnap" width={40} height={40} className="object-cover rounded-full w-10 h-10" />
-                    <div>
-                        <h1 className="text-3xl font-bold leading-tight">
-                            {selectedDate.toDateString() === new Date().toDateString() ? "Today" : format(selectedDate, 'MMM d')}
-                        </h1>
-                        {profile?.full_name && (
-                            <p className="text-sm text-muted-foreground font-medium">
-                                Welcome back, {profile.full_name}
-                            </p>
-                        )}
-                    </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <HistoryDrawer />
-                    <SettingsDialog />
-                    <form action={logout}>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
-                            <span className="sr-only">Logout</span>
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                                <polyline points="16 17 21 12 16 7" />
-                                <line x1="21" x2="9" y1="12" y2="12" />
-                            </svg>
-                        </Button>
-                    </form>
-                </div>
-            </header>
-
-            <main className="px-4 space-y-6">
-                <WeekDatePicker selectedDate={selectedDate} onChange={setSelectedDate} />
-
-                {/* Summary Card */}
-                <Card className="border-none shadow-md bg-card">
-                    <CardContent className="pt-6 pb-8">
-                        <CalorieBudgetRing
-                            consumed={consumed}
-                            goal={profile?.daily_calorie_goal || 2000}
-                        />
-
-                        {/* Macro Split */}
-                        <div className="mt-8 grid grid-cols-3 gap-4 px-2">
-                            <div className="text-center space-y-2">
-                                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                                    <span>Carbs</span>
-                                    <span>{macros.c}/{profile?.carbs_goal}g</span>
-                                </div>
-                                <Progress
-                                    value={Math.min(100, (macros.c / (profile?.carbs_goal || 1)) * 100)}
-                                    className="h-2 bg-muted"
-                                    indicatorClassName="bg-blue-500"
-                                />
-                                <p className="text-xs font-medium text-muted-foreground pt-1">{macros.c}g</p>
-                            </div>
-                            <div className="text-center space-y-2">
-                                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                                    <span>Protein</span>
-                                    <span>{macros.p}/{profile?.protein_goal}g</span>
-                                </div>
-                                <Progress
-                                    value={Math.min(100, (macros.p / (profile?.protein_goal || 1)) * 100)}
-                                    className="h-2 bg-muted"
-                                    indicatorClassName="bg-green-500"
-                                />
-                                <p className="text-xs font-medium text-muted-foreground pt-1">{macros.p}g</p>
-                            </div>
-                            <div className="text-center space-y-2">
-                                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                                    <span>Fat</span>
-                                    <span>{macros.f}/{profile?.fats_goal}g</span>
-                                </div>
-                                <Progress
-                                    value={Math.min(100, (macros.f / (profile?.fats_goal || 1)) * 100)}
-                                    className="h-2 bg-muted"
-                                    indicatorClassName="bg-yellow-500"
-                                />
-                                <p className="text-xs font-medium text-muted-foreground pt-1">{macros.f}g</p>
-                            </div>
+        <div className="relative min-h-screen">
+            <AuroraBackground className="fixed inset-0 z-0" />
+            
+            <div vaul-drawer-wrapper="" className="relative z-10 flex flex-col min-h-screen bg-transparent">
+                <header className="px-6 pt-14 pb-4 flex justify-between items-center bg-transparent">
+                    <div className="flex items-center gap-3">
+                        <Image src="/caloriesnap_logo.png" alt="CalorieSnap" width={40} height={40} className="object-cover rounded-full w-10 h-10" />
+                        <div>
+                            <h1 className="text-3xl font-bold leading-tight">
+                                {selectedDate.toDateString() === new Date().toDateString() ? "Today" : format(selectedDate, 'MMM d')}
+                            </h1>
+                            {profile?.full_name && (
+                                <p className="text-sm text-muted-foreground font-medium">
+                                    Welcome back, {profile.full_name}
+                                </p>
+                            )}
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {/* Interactive triggers will be here, but the Portal is at root */}
+                        <TrendsDrawer />
+                        <HistoryDrawer />
+                        <SettingsDialog />
+                        <form action={logout}>
+                            <Button variant="outline" size="icon" className="rounded-full h-10 w-10 bg-background/50 backdrop-blur-sm border-muted shadow-sm hover:bg-destructive/10 hover:text-destructive text-muted-foreground group transition-all duration-300">
+                                <span className="sr-only">Logout</span>
+                                <LogOut className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                            </Button>
+                        </form>
+                    </div>
+                </header>
 
-                {/* Meal List */}
-                <div className="space-y-2">
-                    <MealSection title="Breakfast" type="breakfast" icon={Coffee} goal={profile?.breakfast_goal} />
-                    <MealSection title="Lunch" type="lunch" icon={Sun} goal={profile?.lunch_goal} />
-                    <MealSection title="Dinner" type="dinner" icon={Moon} goal={profile?.dinner_goal} />
-                    <MealSection title="Snacks" type="snack" icon={Apple} goal={profile?.snack_goal} />
-                </div>
+                <main className="px-4 space-y-6 flex-1 bg-transparent">
+                    <WeekDatePicker selectedDate={selectedDate} onChange={setSelectedDate} />
 
-            </main>
+                    {/* Summary Card */}
+                    <Card className="border-none shadow-md bg-card">
+                        <CardContent className="pt-6 pb-8">
+                            <CalorieBudgetRing
+                                consumed={consumed}
+                                goal={profile?.daily_calorie_goal || 2000}
+                            />
+
+                            {/* Macro Split */}
+                            <div className="mt-8 grid grid-cols-3 gap-4 px-2">
+                                <div className="text-center space-y-2">
+                                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                                        <span>Carbs</span>
+                                        <span>{macros.c}/{profile?.carbs_goal}g</span>
+                                    </div>
+                                    <Progress
+                                        value={Math.min(100, (macros.c / (profile?.carbs_goal || 1)) * 100)}
+                                        className="h-2 bg-muted"
+                                        indicatorClassName="bg-blue-500"
+                                    />
+                                    <p className="text-xs font-medium text-muted-foreground pt-1">{macros.c}g</p>
+                                </div>
+                                <div className="text-center space-y-2">
+                                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                                        <span>Protein</span>
+                                        <span>{macros.p}/{profile?.protein_goal}g</span>
+                                    </div>
+                                    <Progress
+                                        value={Math.min(100, (macros.p / (profile?.protein_goal || 1)) * 100)}
+                                        className="h-2 bg-muted"
+                                        indicatorClassName="bg-green-500"
+                                    />
+                                    <p className="text-xs font-medium text-muted-foreground pt-1">{macros.p}g</p>
+                                </div>
+                                <div className="text-center space-y-2">
+                                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                                        <span>Fat</span>
+                                        <span>{macros.f}/{profile?.fats_goal}g</span>
+                                    </div>
+                                    <Progress
+                                        value={Math.min(100, (macros.f / (profile?.fats_goal || 1)) * 100)}
+                                        className="h-2 bg-muted"
+                                        indicatorClassName="bg-yellow-500"
+                                    />
+                                    <p className="text-xs font-medium text-muted-foreground pt-1">{macros.f}g</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Meal List */}
+                    <div className="space-y-2">
+                        <MealSection title="Breakfast" type="breakfast" icon={Coffee} goal={profile?.breakfast_goal} />
+                        <MealSection title="Lunch" type="lunch" icon={Sun} goal={profile?.lunch_goal} />
+                        <MealSection title="Dinner" type="dinner" icon={Moon} goal={profile?.dinner_goal} />
+                        <MealSection title="Snacks" type="snack" icon={Apple} goal={profile?.snack_goal} />
+                    </div>
+                </main>
+            </div>
 
             {/* Floating Action Button for Global Add */}
             <div className="fixed bottom-8 left-0 right-0 flex justify-center z-50 pointer-events-none">
@@ -258,6 +264,13 @@ export default function Dashboard() {
                     <InputDrawer />
                 </div>
             </div>
-        </AuroraBackground>
+
+            {/* Loader Overlay - Keep at root for visibility */}
+            {mounted && (
+                <Loader className={loading ? 'opacity-100 transition-opacity duration-500' : 'opacity-0 pointer-events-none transition-opacity duration-500'} />
+            )}
+            
+            <DataSync />
+        </div>
     );
 }
