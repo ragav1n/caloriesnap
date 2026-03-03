@@ -6,7 +6,7 @@ import { Camera, Search, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import PillMorphTabs from '@/components/ui/pill-morph-tabs';
 import {
     Drawer,
     DrawerContent,
@@ -66,7 +66,7 @@ export function InputDrawer() {
                 img.src = event.target?.result as string;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 512;
+                    const MAX_WIDTH = 800; // Increased to 800 for better detail
                     const scaleSize = MAX_WIDTH / img.width;
                     const width = Math.min(MAX_WIDTH, img.width);
                     const height = img.height * (img.width > MAX_WIDTH ? scaleSize : 1);
@@ -77,14 +77,14 @@ export function InputDrawer() {
                     const ctx = canvas.getContext('2d');
                     ctx?.drawImage(img, 0, 0, width, height);
 
-                    // Compress to JPEG at 70% quality and get as Blob
+                    // Compress to JPEG at 80% quality
                     canvas.toBlob((blob) => {
                         if (blob) {
                             resolve(blob);
                         } else {
                             reject(new Error("Canvas to Blob failed"));
                         }
-                    }, 'image/jpeg', 0.7);
+                    }, 'image/jpeg', 0.8);
                 };
                 img.onerror = (error) => reject(error);
             };
@@ -110,11 +110,16 @@ export function InputDrawer() {
                 const result = await analyzeImage(formData);
 
                 if (result) {
-                    setValue('food_name', result.food_name);
-                    setValue('calories', result.calories);
-                    setValue('protein', result.protein || 0);
-                    setValue('carbs', result.carbs || 0);
-                    setValue('fats', result.fats || 0);
+                    if (result.confidence?.toLowerCase() === 'low') {
+                        setCapturedImage(null);
+                        alert("Confidence is too low. Please retake the photo with a better angle, lighting, or use a size reference like a fork.");
+                    } else {
+                        setValue('food_name', result.food_name);
+                        setValue('calories', result.calories);
+                        setValue('protein', result.protein || 0);
+                        setValue('carbs', result.carbs || 0);
+                        setValue('fats', result.fats || 0);
+                    }
                 } else {
                     setCapturedImage(null);
                     alert("Could not identify food. Please try again or enter manually.");
@@ -184,131 +189,139 @@ export function InputDrawer() {
                     {/* Meal Selector - Global for all inputs */}
                     <div className="mb-6 space-y-2">
                         <Label className="text-sm font-medium text-muted-foreground ml-1">Meal Type</Label>
-                        <div className="flex gap-2">
-                            {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map((m) => (
-                                <Button
-                                    key={m}
-                                    type="button"
-                                    variant={selectedMeal === m ? 'default' : 'outline'}
-                                    className="flex-1 capitalize text-xs h-9"
-                                    onClick={() => setSelectedMeal(m)}
-                                >
-                                    {m}
-                                </Button>
-                            ))}
-                        </div>
+                        <PillMorphTabs
+                            hidePanels
+                            defaultValue={selectedMeal}
+                            onValueChange={(val) => setSelectedMeal(val as any)}
+                            items={[
+                                { value: 'breakfast', label: 'Breakfast' },
+                                { value: 'lunch', label: 'Lunch' },
+                                { value: 'dinner', label: 'Dinner' },
+                                { value: 'snack', label: 'Snack' },
+                            ]}
+                        />
                     </div>
 
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 mb-4">
-                            <TabsTrigger value="search">Search</TabsTrigger>
-                            <TabsTrigger value="scan">AI Scan</TabsTrigger>
-                            <TabsTrigger value="manual">Manual</TabsTrigger>
-                        </TabsList>
+                    <PillMorphTabs
+                        defaultValue="search"
+                        onValueChange={setActiveTab}
+                        className="w-full"
+                        items={[
+                            {
+                                value: 'search',
+                                label: 'Search',
+                                panel: (
+                                    <div className="space-y-4">
+                                        <div className="flex gap-2">
+                                            <Input
+                                                placeholder="Describe your meal (e.g. 2 idlis with sambar)"
+                                                value={query}
+                                                onChange={(e) => setQuery(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && onSearch()}
+                                            />
+                                            <Button onClick={onSearch} disabled={isSearching}>
+                                                {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
+                                            </Button>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {searchResults.map((item, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    className="flex items-center justify-between p-3 border rounded-lg bg-card active:scale-[0.98] transition-transform cursor-pointer"
+                                                    onClick={() => handleQuickAdd(item)}
+                                                >
+                                                    <div>
+                                                        <div className="font-medium">{item.food_name}</div>
+                                                        <div className="text-sm text-muted-foreground">
+                                                            {item.calories} kcal
+                                                        </div>
+                                                    </div>
+                                                    <Button variant="ghost" size="sm">
+                                                        <Plus className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ),
+                            },
+                            {
+                                value: 'scan',
+                                label: 'AI Scan',
+                                panel: (
+                                    <div className="space-y-4 flex flex-col items-center">
+                                        <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden relative">
+                                            {capturedImage ? (
+                                                <img
+                                                    src={capturedImage}
+                                                    alt="Preview"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <Camera className="h-12 w-12 text-muted-foreground/50" />
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                onChange={onFileChange}
+                                            />
+                                        </div>
+                                        <p className="text-sm text-muted-foreground text-center">
+                                            Tap the box to take a photo or upload.
+                                        </p>
+                                        {analyzing && (
+                                            <div className="flex items-center gap-2 text-primary animate-pulse">
+                                                <Loader2 className="animate-spin" /> Analyzing...
+                                            </div>
+                                        )}
 
-                        {/* Search Content */}
-                        <TabsContent value="search" className="space-y-4">
-                            <div className="flex gap-2">
-                                <Input
-                                    placeholder="Describe your meal (e.g. 2 idlis with sambar)"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && onSearch()}
-                                />
-                                <Button onClick={onSearch} disabled={isSearching}>
-                                    {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
-                                </Button>
-                            </div>
-                            <div className="space-y-2">
-                                {searchResults.map((item, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="flex items-center justify-between p-3 border rounded-lg bg-card active:scale-[0.98] transition-transform cursor-pointer"
-                                        onClick={() => handleQuickAdd(item)}
-                                    >
-                                        <div>
-                                            <div className="font-medium">{item.food_name}</div>
-                                            <div className="text-sm text-muted-foreground">
-                                                {item.calories} kcal
+                                        {/* If AI pre-fills the form, we can show the manual tab or just show the result here to confirm */}
+                                        {capturedImage && !analyzing && (
+                                            <div className="w-full pt-4">
+                                                <Button onClick={() => setActiveTab('manual')} className="w-full">
+                                                    Review & Add
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ),
+                            },
+                            {
+                                value: 'manual',
+                                label: 'Manual',
+                                panel: (
+                                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="food_name">Food Name</Label>
+                                            <Input id="food_name" {...register('food_name', { required: true })} placeholder="e.g. Banana" />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="calories">Calories</Label>
+                                                <Input id="calories" type="number" {...register('calories', { required: true })} placeholder="0" />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="protein">Protein (g)</Label>
+                                                <Input id="protein" type="number" {...register('protein')} placeholder="0" />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="carbs">Carbs (g)</Label>
+                                                <Input id="carbs" type="number" {...register('carbs')} placeholder="0" />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="fats">Fats (g)</Label>
+                                                <Input id="fats" type="number" {...register('fats')} placeholder="0" />
                                             </div>
                                         </div>
-                                        <Button variant="ghost" size="sm">
-                                            <Plus className="h-4 w-4" />
+                                        <Button type="submit" className="w-full">
+                                            Add Log
                                         </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        </TabsContent>
-
-                        {/* Scan Content */}
-                        <TabsContent value="scan" className="space-y-4 flex flex-col items-center">
-                            <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden relative">
-                                {capturedImage ? (
-                                    <img
-                                        src={capturedImage}
-                                        alt="Preview"
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <Camera className="h-12 w-12 text-muted-foreground/50" />
-                                )}
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                    onChange={onFileChange}
-                                />
-                            </div>
-                            <p className="text-sm text-muted-foreground text-center">
-                                Tap the box to take a photo or upload.
-                            </p>
-                            {analyzing && (
-                                <div className="flex items-center gap-2 text-primary animate-pulse">
-                                    <Loader2 className="animate-spin" /> Analyzing...
-                                </div>
-                            )}
-
-                            {/* If AI pre-fills the form, we can show the manual tab or just show the result here to confirm */}
-                            {capturedImage && !analyzing && (
-                                <div className="w-full pt-4">
-                                    <Button onClick={() => setActiveTab('manual')} className="w-full">
-                                        Review & Add
-                                    </Button>
-                                </div>
-                            )}
-                        </TabsContent>
-
-                        {/* Manual Content */}
-                        <TabsContent value="manual">
-                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="food_name">Food Name</Label>
-                                    <Input id="food_name" {...register('food_name', { required: true })} placeholder="e.g. Banana" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="calories">Calories</Label>
-                                        <Input id="calories" type="number" {...register('calories', { required: true })} placeholder="0" />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="protein">Protein (g)</Label>
-                                        <Input id="protein" type="number" {...register('protein')} placeholder="0" />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="carbs">Carbs (g)</Label>
-                                        <Input id="carbs" type="number" {...register('carbs')} placeholder="0" />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="fats">Fats (g)</Label>
-                                        <Input id="fats" type="number" {...register('fats')} placeholder="0" />
-                                    </div>
-                                </div>
-                                <Button type="submit" className="w-full">
-                                    Add Log
-                                </Button>
-                            </form>
-                        </TabsContent>
-                    </Tabs>
+                                    </form>
+                                ),
+                            },
+                        ]}
+                    />
                 </div>
                 <DrawerFooter>
                     <DrawerClose asChild>

@@ -39,7 +39,8 @@ export async function analyzeImage(formData: FormData): Promise<FoodItem | null>
         const base64Image = buffer.toString('base64');
 
         const model = genAI.getGenerativeModel({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3-flash-preview',
+            systemInstruction: 'You are an expert nutritionist. Analyze the image and provide the nutritional content in the requested JSON format.',
             generationConfig: {
                 // Return schema-validated JSON directly
                 responseMimeType: "application/json",
@@ -47,7 +48,7 @@ export async function analyzeImage(formData: FormData): Promise<FoodItem | null>
             }
         });
 
-        const prompt = 'Identify the food in this image and estimate nutritional content.';
+        const prompt = 'Identify the food in this image and estimate nutritional content. A fork/credit card is visible in the image — use it to estimate portion sizes.';
 
         const imagePart = {
             inlineData: {

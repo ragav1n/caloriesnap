@@ -12,7 +12,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 });
 
 const nextConfig = {
-  images: { unoptimized: true },
+  // images: { unoptimized: true },
 };
 
 module.exports = withPWA(nextConfig);

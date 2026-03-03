@@ -1,24 +1,32 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { useStore } from '@/store/useStore';
-import { CalorieBudgetRing } from '@/components/CalorieBudgetRing';
-import { InputDrawer } from '@/components/InputDrawer';
-import { HistoryDrawer } from '@/components/HistoryDrawer';
-import { SettingsDialog } from '@/components/SettingsDialog';
 import { Button } from '@/components/ui/button';
 import { Plus, Coffee, Sun, Moon, Apple, HelpCircle, ChevronRight, ChevronDown, Settings } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { DataSync } from '@/components/DataSync';
-import { Loader } from '@/components/ui/Loader';
 import { deleteUserLog } from '@/actions/data';
 
+// Dynamic Imports for Heavy Components
+const CalorieBudgetRing = dynamic(() => import('@/components/CalorieBudgetRing').then(mod => mod.CalorieBudgetRing), { ssr: false });
+const InputDrawer = dynamic(() => import('@/components/InputDrawer').then(mod => mod.InputDrawer), { ssr: false });
+const HistoryDrawer = dynamic(() => import('@/components/HistoryDrawer').then(mod => mod.HistoryDrawer), { ssr: false });
+const SettingsDialog = dynamic(() => import('@/components/SettingsDialog').then(mod => ({ default: mod.SettingsDialog })), { ssr: false });
+const DataSync = dynamic(() => import('@/components/DataSync').then(mod => ({ default: mod.DataSync })), { ssr: false });
+const Loader = dynamic(() => import('@/components/ui/Loader').then(mod => mod.Loader), { ssr: false });
+
 import { logout } from '@/app/auth/actions';
+import { AuroraBackground } from '@/components/ui/aurora-background';
+import { WeekDatePicker } from '@/components/ui/week-date-picker';
+import { format } from 'date-fns';
 
 export default function Dashboard() {
     const { logs, profile, setProfile } = useStore();
+    const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
     const [loading, setLoading] = React.useState(true);
     const [mounted, setMounted] = React.useState(true);
 
@@ -58,8 +66,8 @@ export default function Dashboard() {
     // Aggregation Logic
     const todayLogs = logs.filter(log => {
         const logDate = new Date(log.created_at).toDateString();
-        const today = new Date().toDateString();
-        return logDate === today;
+        const currentDate = selectedDate.toDateString();
+        return logDate === currentDate;
     });
     const consumed = todayLogs.reduce((acc, l) => acc + l.calories, 0);
 
@@ -131,9 +139,7 @@ export default function Dashboard() {
     if (!profile) return null; // Or some fallback while profile inits
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-24 text-foreground relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-900/10 via-transparent to-transparent pointer-events-none"></div>
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-teal-900/10 via-transparent to-transparent pointer-events-none"></div>
+        <AuroraBackground className="block min-h-screen pb-24 text-foreground relative overflow-y-auto overflow-x-hidden">
             {/* Loader Overlay */}
             {mounted && (
                 <Loader className={loading ? 'opacity-100' : 'opacity-0 pointer-events-none'} />
@@ -144,8 +150,10 @@ export default function Dashboard() {
             {/* Top Header */}
             <header className="px-6 pt-14 pb-4 flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                    <img src="/caloriesnap_logo.png" alt="CalorieSnap" className="h-10 w-10 object-contain" />
-                    <h1 className="text-3xl font-bold">Today</h1>
+                    <Image src="/caloriesnap_logo.png" alt="CalorieSnap" width={40} height={40} style={{ width: 'auto', height: 'auto' }} className="object-contain" />
+                    <h1 className="text-3xl font-bold">
+                        {selectedDate.toDateString() === new Date().toDateString() ? "Today" : format(selectedDate, 'MMM d')}
+                    </h1>
                 </div>
                 <div className="flex items-center gap-2">
                     <HistoryDrawer />
@@ -174,6 +182,8 @@ export default function Dashboard() {
             </header>
 
             <main className="px-4 space-y-6">
+                <WeekDatePicker selectedDate={selectedDate} onChange={setSelectedDate} />
+
                 {/* Summary Card */}
                 <Card className="border-none shadow-md bg-card">
                     <CardContent className="pt-6 pb-8">
@@ -240,6 +250,6 @@ export default function Dashboard() {
                     <InputDrawer />
                 </div>
             </div>
-        </div>
+        </AuroraBackground>
     );
 }
