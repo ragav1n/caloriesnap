@@ -1,6 +1,7 @@
 export interface Profile {
     id: string;
     email: string | null;
+    full_name: string | null;
     daily_calorie_goal: number;
     protein_goal: number;
     carbs_goal: number;

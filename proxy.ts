@@ -53,7 +53,7 @@ export async function proxy(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    const safePathnames = ['/login', '/register', '/auth/callback']
+    const safePathnames = ['/login', '/auth/callback']
     const isSafePath = safePathnames.some(path => request.nextUrl.pathname.startsWith(path))
 
     // If user is NOT logged in and trying to access a protected route (dashboard)

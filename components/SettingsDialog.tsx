@@ -22,6 +22,7 @@ export function SettingsDialog() {
 
     const { register, handleSubmit, reset } = useForm({
         defaultValues: {
+            full_name: profile?.full_name || '',
             daily_calorie_goal: profile?.daily_calorie_goal || 2000,
             protein_goal: profile?.protein_goal || 150,
             carbs_goal: profile?.carbs_goal || 250,
@@ -37,6 +38,7 @@ export function SettingsDialog() {
     React.useEffect(() => {
         if (open && profile) {
             reset({
+                full_name: profile.full_name || '',
                 daily_calorie_goal: profile.daily_calorie_goal,
                 protein_goal: profile.protein_goal,
                 carbs_goal: profile.carbs_goal,
@@ -69,6 +71,7 @@ export function SettingsDialog() {
 
         try {
             await updateUserProfile(profile.id, {
+                full_name: data.full_name,
                 daily_calorie_goal: Number(data.daily_calorie_goal),
                 protein_goal: Number(data.protein_goal),
                 carbs_goal: Number(data.carbs_goal),
@@ -81,6 +84,7 @@ export function SettingsDialog() {
             // Update local store after successful API call
             setProfile({
                 ...profile,
+                full_name: data.full_name,
                 daily_calorie_goal: Number(data.daily_calorie_goal),
                 protein_goal: Number(data.protein_goal),
                 carbs_goal: Number(data.carbs_goal),
@@ -109,6 +113,7 @@ export function SettingsDialog() {
 
         reset({
             ...profile,
+            full_name: profile?.full_name || '',
             daily_calorie_goal: total, // Keep current input
             protein_goal: profile?.protein_goal,
             carbs_goal: profile?.carbs_goal,
@@ -117,7 +122,7 @@ export function SettingsDialog() {
             lunch_goal: l,
             dinner_goal: d,
             snack_goal: s
-        });
+        } as any);
         setError(null);
     };
 
@@ -136,6 +141,14 @@ export function SettingsDialog() {
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+
+                    <div className="space-y-4">
+                        <h4 className="font-medium border-b pb-2">Profile</h4>
+                        <div className="grid gap-2">
+                            <Label htmlFor="full_name">Display Name</Label>
+                            <Input id="full_name" placeholder="Your Name" {...register('full_name')} />
+                        </div>
+                    </div>
 
                     <div className="space-y-4">
                         <h4 className="font-medium border-b pb-2">Daily Totals</h4>

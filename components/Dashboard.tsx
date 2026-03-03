@@ -51,6 +51,7 @@ export default function Dashboard() {
             setProfile({
                 id: 'user-1',
                 email: 'user@example.com',
+                full_name: 'User',
                 daily_calorie_goal: 2000,
                 protein_goal: 150,
                 carbs_goal: 250,
@@ -150,10 +151,17 @@ export default function Dashboard() {
             {/* Top Header */}
             <header className="px-6 pt-14 pb-4 flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                    <Image src="/caloriesnap_logo.png" alt="CalorieSnap" width={40} height={40} style={{ width: 'auto', height: 'auto' }} className="object-contain" />
-                    <h1 className="text-3xl font-bold">
-                        {selectedDate.toDateString() === new Date().toDateString() ? "Today" : format(selectedDate, 'MMM d')}
-                    </h1>
+                    <Image src="/caloriesnap_logo.png" alt="CalorieSnap" width={40} height={40} className="object-cover rounded-full w-10 h-10" />
+                    <div>
+                        <h1 className="text-3xl font-bold leading-tight">
+                            {selectedDate.toDateString() === new Date().toDateString() ? "Today" : format(selectedDate, 'MMM d')}
+                        </h1>
+                        {profile?.full_name && (
+                            <p className="text-sm text-muted-foreground font-medium">
+                                Welcome back, {profile.full_name}
+                            </p>
+                        )}
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
                     <HistoryDrawer />

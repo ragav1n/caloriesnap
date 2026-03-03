@@ -2,6 +2,7 @@
 create table public.profiles (
   id uuid not null references auth.users on delete cascade,
   email text,
+  full_name text,
   daily_calorie_goal integer default 2000,
   protein_goal integer default 150, -- in grams
   carbs_goal integer default 250,   -- in grams
@@ -53,8 +54,12 @@ using ( auth.uid() = user_id );
 create or replace function public.handle_new_user() 
 returns trigger as $$
 begin
-  insert into public.profiles (id, email)
-  values (new.id, new.email);
+  insert into public.profiles (id, email, full_name)
+  values (
+    new.id, 
+    new.email, 
+    new.raw_user_meta_data->>'full_name'
+  );
   return new;
 end;
 $$ language plpgsql security definer;

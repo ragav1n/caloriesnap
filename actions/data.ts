@@ -45,6 +45,7 @@ export const deleteUserLog = async (id: string) => {
 };
 
 export const updateUserProfile = async (id: string, updates: Partial<Profile>) => {
+    // 1. Update Profile Table
     const { error } = await supabase.from('profiles').update(updates).eq('id', id);
 
     if (error) {
@@ -52,7 +53,20 @@ export const updateUserProfile = async (id: string, updates: Partial<Profile>) =
         return { error };
     }
 
-    // We need to merge the updates with the current profile in the store
+    // 2. Sync with Auth Metadata if full_name is present
+    if (updates.full_name) {
+        const { error: authError } = await supabase.auth.updateUser({
+            data: { full_name: updates.full_name }
+        });
+
+        if (authError) {
+            console.error('Error updating auth metadata:', authError);
+            // We don't necessarily want to fail the whole operation if metadata sync fails,
+            // but logging it is important.
+        }
+    }
+
+    // 3. Update local store
     const currentProfile = useStore.getState().profile;
     if (currentProfile) {
         useStore.getState().setProfile({ ...currentProfile, ...updates });
