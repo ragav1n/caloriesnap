@@ -299,19 +299,19 @@ export function InputDrawer() {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="grid gap-2">
                                                 <Label htmlFor="calories">Calories</Label>
-                                                <Input id="calories" type="number" {...register('calories', { required: true })} placeholder="0" />
+                                                <Input id="calories" type="number" step="any" {...register('calories', { required: true })} placeholder="0" />
                                             </div>
                                             <div className="grid gap-2">
                                                 <Label htmlFor="protein">Protein (g)</Label>
-                                                <Input id="protein" type="number" {...register('protein')} placeholder="0" />
+                                                <Input id="protein" type="number" step="any" {...register('protein')} placeholder="0" />
                                             </div>
                                             <div className="grid gap-2">
                                                 <Label htmlFor="carbs">Carbs (g)</Label>
-                                                <Input id="carbs" type="number" {...register('carbs')} placeholder="0" />
+                                                <Input id="carbs" type="number" step="any" {...register('carbs')} placeholder="0" />
                                             </div>
                                             <div className="grid gap-2">
                                                 <Label htmlFor="fats">Fats (g)</Label>
-                                                <Input id="fats" type="number" {...register('fats')} placeholder="0" />
+                                                <Input id="fats" type="number" step="any" {...register('fats')} placeholder="0" />
                                             </div>
                                         </div>
                                         <Button type="submit" className="w-full">
