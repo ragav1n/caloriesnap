@@ -70,19 +70,11 @@ CONFIDENCE:
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: schema,
-                temperature: 0.1,      // Low = consistent, reproducible estimates
-                topP: 0.8,             // Tighten sampling distribution
-                maxOutputTokens: 512,  // Nutrition JSON needs very few tokens
             }
         });
 
-        const prompt = `Analyze this food image:
-
-Step 1 — Inventory: List every food item visible, including sauces and sides.
-Step 2 — Reference: Identify any size reference objects. If none, note the plate/bowl type.
-Step 3 — Portions: Estimate weight (g) of each component using your reference.
-Step 4 — Macros: Calculate calories, protein, carbs, fats for each component.
-Step 5 — Sum: Add all components together and return as JSON.
+        const prompt = `Analyze this food image and return the nutritional information.
+Remember to internally estimate the portion sizes, size reference, and explicitly describe your reasoning in the portion_note field.
 
 If confidence is low, return your best estimate anyway — never return zero values for a visible meal.`;
 
@@ -91,7 +83,14 @@ If confidence is low, return your best estimate anyway — never return zero val
             { inlineData: { data: base64Image, mimeType: 'image/jpeg' } }
         ]);
 
-        return JSON.parse(result.response.text()) as FoodItem;
+        const text = result.response.text();
+        const finishReason = result.response.candidates?.[0]?.finishReason;
+        console.log("Gemini Raw Text Response:", text);
+        console.log("Gemini Finish Reason:", finishReason);
+        
+        const cleanJson = text.replace(/```json|```/g, "").trim();
+
+        return JSON.parse(cleanJson) as FoodItem;
 
     } catch (error) {
         console.error('Gemini Analysis Error:', error);

@@ -23,7 +23,7 @@ export const addUserLog = async (log: Log) => {
     const { error } = await supabase.from('logs').insert([validation.data]);
 
     if (error) {
-        console.error('Error adding log:', error);
+        console.error('Error adding log:', JSON.stringify(error, null, 2));
         return { error };
     }
 

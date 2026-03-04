@@ -26,7 +26,7 @@ const parserModel = genAI.getGenerativeModel({
             },
         },
         temperature: 0,
-        maxOutputTokens: 256, // Just parsing — needs very few tokens
+        maxOutputTokens: 1024, // Increased tokens to prevent JSON truncation
     },
     systemInstruction: `Parse meal descriptions into individual food components. 
 Translate regional names to English: "idli" → "idli (steamed rice cake)", "dal" → "lentil soup".
@@ -75,7 +75,7 @@ const estimatorModel = genAI.getGenerativeModel({
             required: ["food_name", "calories", "protein", "carbs", "fats"],
         },
         temperature: 0.1,
-        maxOutputTokens: 150,
+        maxOutputTokens: 512,
     },
     systemInstruction: `You are a clinical nutritionist. Estimate macros for a single food item at the given quantity. 
 Account for cooking fats in Indian dishes. Never return zeros.`
@@ -86,7 +86,9 @@ async function estimateWithGemini(name: string, quantity: number, unit: string):
         const result = await estimatorModel.generateContent(
             `Estimate macros for: ${quantity} ${unit} of ${name}`
         );
-        return JSON.parse(result.response.text());
+        const text = result.response.text();
+        const cleanJson = text.replace(/```json|```/g, "").trim();
+        return JSON.parse(cleanJson);
     } catch {
         return null;
     }
@@ -100,8 +102,10 @@ export async function searchFoodAI(query: string): Promise<FoodItem[]> {
         const parseResult = await parserModel.generateContent(
             `Parse this meal: "${query}"`
         );
-        const parsed: Array<{ name: string; quantity: number; unit: string }> =
-            JSON.parse(parseResult.response.text());
+        const text = parseResult.response.text();
+        const cleanJson = text.replace(/```json|```/g, "").trim();
+        
+        const parsed: Array<{ name: string; quantity: number; unit: string }> = JSON.parse(cleanJson);
 
         // Step 2 & 3: Look up each item in USDA, fall back to Gemini if not found
         const results = await Promise.all(

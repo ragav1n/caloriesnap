@@ -67,7 +67,7 @@ export function InputDrawer() {
                 img.src = event.target?.result as string;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800; // Increased to 800 for better detail
+                    const MAX_WIDTH = 400; // Reduced to 400 for much faster AI processing
                     const scaleSize = MAX_WIDTH / img.width;
                     const width = Math.min(MAX_WIDTH, img.width);
                     const height = img.height * (img.width > MAX_WIDTH ? scaleSize : 1);
@@ -279,7 +279,7 @@ export function InputDrawer() {
                                         {/* If AI pre-fills the form, we can show the manual tab or just show the result here to confirm */}
                                         {capturedImage && !analyzing && (
                                             <div className="w-full pt-4">
-                                                <Button onClick={() => setActiveTab('manual')} className="w-full">
+                                                <Button onClick={handleSubmit(onSubmit)} className="w-full">
                                                     Review & Add
                                                 </Button>
                                             </div>
