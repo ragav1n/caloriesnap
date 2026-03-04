@@ -173,20 +173,20 @@ export function InputDrawer() {
     const [activeTab, setActiveTab] = React.useState('search');
 
     return (
-        <Drawer open={isOpen} onOpenChange={setIsOpen}>
+        <Drawer open={isOpen} onOpenChange={setIsOpen} shouldScaleBackground={false}>
             <DrawerTrigger asChild>
                 <Button size="lg" className="rounded-full shadow-lg h-14 w-14 p-0 bg-primary hover:bg-primary/90">
                     <Plus className="h-8 w-8 text-primary-foreground" />
                 </Button>
             </DrawerTrigger>
-            <DrawerContent className="h-[85vh] flex flex-col">
+            <DrawerContent className="h-[85vh] flex flex-col" onInteractOutside={(e) => e.stopPropagation()}>
                 <DrawerHeader>
                     <DrawerTitle>Add Food</DrawerTitle>
                     <DrawerDescription>
                         Search, scan, or manually enter your food.
                     </DrawerDescription>
                 </DrawerHeader>
-                <div className="flex-1 px-4 overflow-y-auto">
+                <div className="flex-1 px-4 overflow-y-auto overscroll-contain">
                     {/* Meal Selector - Global for all inputs */}
                     <div className="mb-6 space-y-2">
                         <Label className="text-sm font-medium text-muted-foreground ml-1">Meal Type</Label>

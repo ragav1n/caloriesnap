@@ -31,4 +31,5 @@ export interface FoodItem {
     carbs?: number;
     fats?: number;
     confidence?: string;
+    portion_note?: string;
 }
