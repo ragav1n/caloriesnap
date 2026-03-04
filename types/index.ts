@@ -33,3 +33,11 @@ export interface FoodItem {
     confidence?: string;
     portion_note?: string;
 }
+
+export interface ActivityLog {
+    id: string;
+    user_id: string;
+    activity_name: string;
+    calories_burned: number;
+    created_at: string;
+}

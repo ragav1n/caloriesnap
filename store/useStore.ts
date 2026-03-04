@@ -1,20 +1,28 @@
 import { create } from 'zustand';
-import { Log, Profile } from '@/types';
+import { Log, Profile, ActivityLog } from '@/types';
 
 interface AppState {
     logs: Log[];
     profile: Profile | null;
+    activityLogs: ActivityLog[];
     setLogs: (logs: Log[]) => void;
     addLog: (log: Log) => void;
     removeLog: (id: string) => void;
+    setActivityLogs: (logs: ActivityLog[]) => void;
+    addActivityLog: (log: ActivityLog) => void;
+    removeActivityLog: (id: string) => void;
     setProfile: (profile: Profile) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
     logs: [],
+    activityLogs: [],
     profile: null,
     setLogs: (logs) => set({ logs }),
     addLog: (log) => set((state) => ({ logs: [log, ...state.logs] })),
     removeLog: (id) => set((state) => ({ logs: state.logs.filter((l) => l.id !== id) })),
+    setActivityLogs: (activityLogs) => set({ activityLogs }),
+    addActivityLog: (log) => set((state) => ({ activityLogs: [log, ...state.activityLogs] })),
+    removeActivityLog: (id) => set((state) => ({ activityLogs: state.activityLogs.filter((l) => l.id !== id) })),
     setProfile: (profile) => set({ profile }),
 }));

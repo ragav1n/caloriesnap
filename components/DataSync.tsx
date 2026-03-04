@@ -3,11 +3,12 @@
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useStore } from '@/store/useStore';
-import { Profile, Log } from '@/types';
+import { Profile, Log, ActivityLog } from '@/types';
 
 export function DataSync() {
     const setProfile = useStore((state) => state.setProfile);
     const setLogs = useStore((state) => state.setLogs);
+    const setActivityLogs = useStore((state) => state.setActivityLogs);
 
     useEffect(() => {
         const syncData = async () => {
@@ -40,10 +41,22 @@ export function DataSync() {
             } else if (logsError) {
                 console.error('Error fetching logs:', logsError);
             }
+            // 3. Fetch Activity Logs
+            const { data: activityLogsData, error: activityLogsError } = await supabase
+                .from('activity_logs')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+
+            if (activityLogsData) {
+                setActivityLogs(activityLogsData as ActivityLog[]);
+            } else if (activityLogsError) {
+                console.error('Error fetching activity logs:', activityLogsError);
+            }
         };
 
         syncData();
-    }, [setProfile, setLogs]);
+    }, [setProfile, setLogs, setActivityLogs]);
 
     return null; // This component renders nothing
 }

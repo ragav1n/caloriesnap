@@ -6,6 +6,7 @@ import { Flame, Utensils } from 'lucide-react';
 
 interface CalorieBudgetRingProps {
     consumed: number;
+    burned?: number;
     goal: number;
     size?: number;
     strokeWidth?: number;
@@ -13,6 +14,7 @@ interface CalorieBudgetRingProps {
 
 export function CalorieBudgetRing({
     consumed,
+    burned = 0,
     goal,
     size = 220,
     strokeWidth = 15, // Thinner stroke for modern look
@@ -23,8 +25,8 @@ export function CalorieBudgetRing({
 
     // Safety check div by zero
     const safeGoal = goal > 0 ? goal : 1;
-    const remaining = Math.max(0, goal - consumed);
-    const percentage = Math.min(100, Math.max(0, (consumed / safeGoal) * 100));
+    const remaining = Math.max(0, goal + burned - consumed);
+    const percentage = Math.min(100, Math.max(0, (consumed / (safeGoal + burned)) * 100));
 
     // Stroke Dash Offset for Circle:
     // offset = circumference - (percent / 100) * circumference
@@ -91,7 +93,7 @@ export function CalorieBudgetRing({
                 </div>
                 <div className="flex flex-col items-center">
                     <span className="text-muted-foreground">Burned</span>
-                    <span className="text-xl">0</span>
+                    <span className="text-xl">{burned}</span>
                 </div>
             </div>
         </div>

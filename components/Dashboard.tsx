@@ -20,6 +20,7 @@ import { deleteUserLog } from '@/actions/data';
 // Dynamic Imports for Heavy Components
 const CalorieBudgetRing = dynamic(() => import('@/components/CalorieBudgetRing').then(mod => mod.CalorieBudgetRing), { ssr: false });
 const InputDrawer = dynamic(() => import('@/components/InputDrawer').then(mod => mod.InputDrawer), { ssr: false });
+const ActivityDrawer = dynamic(() => import('@/components/ActivityDrawer').then(mod => mod.ActivityDrawer), { ssr: false });
 const HistoryDrawer = dynamic(() => import('@/components/HistoryDrawer').then(mod => mod.HistoryDrawer), { ssr: false });
 const SettingsDialog = dynamic(() => import('@/components/SettingsDialog').then(mod => ({ default: mod.SettingsDialog })), { ssr: false });
 const TrendsDrawer = dynamic(() => import('@/components/TrendsDrawer').then(mod => mod.TrendsDrawer), { ssr: false });
@@ -32,7 +33,7 @@ import { WeekDatePicker } from '@/components/ui/week-date-picker';
 import { format } from 'date-fns';
 
 export default function Dashboard() {
-    const { logs, profile, setProfile } = useStore();
+    const { logs, activityLogs, profile, setProfile } = useStore();
     const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
     const [loading, setLoading] = React.useState(true);
     const [mounted, setMounted] = React.useState(true);
@@ -77,7 +78,15 @@ export default function Dashboard() {
         const currentDate = selectedDate.toDateString();
         return logDate === currentDate;
     });
+
+    const todayActivityLogs = (activityLogs || []).filter(log => {
+        const logDate = new Date(log.created_at).toDateString();
+        const currentDate = selectedDate.toDateString();
+        return logDate === currentDate;
+    });
+
     const consumed = todayLogs.reduce((acc, l) => acc + l.calories, 0);
+    const burned = todayActivityLogs.reduce((acc, l) => acc + l.calories_burned, 0);
 
     const macros = todayLogs.reduce((acc, l) => ({
         p: acc.p + l.protein,
@@ -203,6 +212,7 @@ export default function Dashboard() {
                         <CardContent className="pt-6 pb-8">
                             <CalorieBudgetRing
                                 consumed={consumed}
+                                burned={burned}
                                 goal={profile?.daily_calorie_goal || 2000}
                             />
 
@@ -211,38 +221,38 @@ export default function Dashboard() {
                                 <div className="text-center space-y-2">
                                     <div className="flex justify-between text-xs text-muted-foreground mb-1">
                                         <span>Carbs</span>
-                                        <span>{macros.c}/{profile?.carbs_goal}g</span>
+                                        <span>{Number(macros.c.toFixed(2))}/{profile?.carbs_goal}g</span>
                                     </div>
                                     <Progress
                                         value={Math.min(100, (macros.c / (profile?.carbs_goal || 1)) * 100)}
                                         className="h-2 bg-muted"
                                         indicatorClassName="bg-blue-500"
                                     />
-                                    <p className="text-xs font-medium text-muted-foreground pt-1">{macros.c}g</p>
+                                    <p className="text-xs font-medium text-muted-foreground pt-1">{Number(macros.c.toFixed(2))}g</p>
                                 </div>
                                 <div className="text-center space-y-2">
                                     <div className="flex justify-between text-xs text-muted-foreground mb-1">
                                         <span>Protein</span>
-                                        <span>{macros.p}/{profile?.protein_goal}g</span>
+                                        <span>{Number(macros.p.toFixed(2))}/{profile?.protein_goal}g</span>
                                     </div>
                                     <Progress
                                         value={Math.min(100, (macros.p / (profile?.protein_goal || 1)) * 100)}
                                         className="h-2 bg-muted"
                                         indicatorClassName="bg-green-500"
                                     />
-                                    <p className="text-xs font-medium text-muted-foreground pt-1">{macros.p}g</p>
+                                    <p className="text-xs font-medium text-muted-foreground pt-1">{Number(macros.p.toFixed(2))}g</p>
                                 </div>
                                 <div className="text-center space-y-2">
                                     <div className="flex justify-between text-xs text-muted-foreground mb-1">
                                         <span>Fat</span>
-                                        <span>{macros.f}/{profile?.fats_goal}g</span>
+                                        <span>{Number(macros.f.toFixed(2))}/{profile?.fats_goal}g</span>
                                     </div>
                                     <Progress
                                         value={Math.min(100, (macros.f / (profile?.fats_goal || 1)) * 100)}
                                         className="h-2 bg-muted"
                                         indicatorClassName="bg-yellow-500"
                                     />
-                                    <p className="text-xs font-medium text-muted-foreground pt-1">{macros.f}g</p>
+                                    <p className="text-xs font-medium text-muted-foreground pt-1">{Number(macros.f.toFixed(2))}g</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -258,8 +268,11 @@ export default function Dashboard() {
                 </main>
             </div>
 
-            {/* Floating Action Button for Global Add */}
-            <div className="fixed bottom-8 left-0 right-0 flex justify-center z-50 pointer-events-none">
+            {/* Floating Action Buttons for Global Add */}
+            <div className="fixed bottom-8 left-0 right-0 flex justify-center gap-4 z-50 pointer-events-none">
+                <div className="pointer-events-auto shadow-2xl rounded-full">
+                    <ActivityDrawer />
+                </div>
                 <div className="pointer-events-auto shadow-2xl rounded-full">
                     <InputDrawer />
                 </div>

@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { useStore } from '@/store/useStore';
-import { Log, Profile } from '@/types';
+import { Log, Profile, ActivityLog } from '@/types';
 
 // Helper to access store outside of components (optional, but cleaner to pass setters or use store inside components)
 // For these actions, we'll return the result and let the component update the store, 
@@ -41,6 +41,35 @@ export const deleteUserLog = async (id: string) => {
     }
 
     useStore.getState().removeLog(id);
+    return { success: true };
+};
+
+export const addActivityLog = async (log: ActivityLog) => {
+    // Basic validation
+    if (!log.activity_name || log.calories_burned < 0) {
+        return { error: "Invalid activity data" };
+    }
+
+    const { error } = await supabase.from('activity_logs').insert([log]);
+
+    if (error) {
+        console.error('Error adding activity log:', JSON.stringify(error, null, 2));
+        return { error };
+    }
+
+    useStore.getState().addActivityLog(log);
+    return { success: true };
+};
+
+export const deleteActivityLog = async (id: string) => {
+    const { error } = await supabase.from('activity_logs').delete().eq('id', id);
+
+    if (error) {
+        console.error('Error deleting activity log:', error);
+        return { error };
+    }
+
+    useStore.getState().removeActivityLog(id);
     return { success: true };
 };
 

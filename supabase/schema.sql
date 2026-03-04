@@ -67,3 +67,27 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- 7. Create a table for Activity Logs
+create table public.activity_logs (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  activity_name text not null,
+  calories_burned integer not null,
+  created_at timestamptz default now()
+);
+
+-- 8. Enable Row Level Security (RLS) for Activity Logs
+alter table public.activity_logs enable row level security;
+
+create policy "Users can view their own activity logs" 
+on public.activity_logs for select 
+using ( auth.uid() = user_id );
+
+create policy "Users can insert their own activity logs" 
+on public.activity_logs for insert 
+with check ( auth.uid() = user_id );
+
+create policy "Users can delete their own activity logs" 
+on public.activity_logs for delete 
+using ( auth.uid() = user_id );
