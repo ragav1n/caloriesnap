@@ -51,10 +51,11 @@ export function TrendsDrawer() {
     const days = viewType === 'week' ? 7 : 30
     const relevantData = trendData.slice(-days)
     const total = relevantData.reduce((sum, d) => sum + d.calories, 0)
-    const avg = Math.round(total / days)
-    const max = Math.max(...relevantData.map(d => d.calories))
-    
-    return { total, avg, max }
+    const activeDays = relevantData.filter(d => d.calories > 0).length
+    const avg = activeDays > 0 ? Math.round(total / activeDays) : 0
+    const max = relevantData.length > 0 ? Math.max(...relevantData.map(d => d.calories)) : 0
+
+    return { total, avg, max, activeDays }
   }, [trendData, viewType])
 
   return (
@@ -141,9 +142,9 @@ export function TrendsDrawer() {
                         <Calendar className="h-5 w-5 text-emerald-500" />
                     </div>
                     <div>
-                        <h4 className="text-sm font-bold text-emerald-400 mb-1">Weekly Summary</h4>
+                        <h4 className="text-sm font-bold text-emerald-400 mb-1">{viewType === 'week' ? 'Weekly' : 'Monthly'} Summary</h4>
                         <p className="text-xs text-slate-400 leading-relaxed">
-                            You've consumed a total of <span className="text-white font-medium">{stats.total} calories</span> over the last {viewType === 'week' ? '7' : '30'} days. 
+                            You've consumed a total of <span className="text-white font-medium">{stats.total} calories</span> across <span className="text-white font-medium">{stats.activeDays} logged day{stats.activeDays !== 1 ? 's' : ''}</span> in the last {viewType === 'week' ? '7' : '30'} days.
                             Consistency is key to reaching your goals!
                         </p>
                     </div>

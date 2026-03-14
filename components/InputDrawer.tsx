@@ -23,6 +23,7 @@ import { analyzeImage } from '@/services/gemini';
 import { FoodItem } from '@/types';
 import { useStore } from '@/store/useStore';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
 
 export function InputDrawer() {
     const [isOpen, setIsOpen] = React.useState(false);
@@ -170,7 +171,7 @@ export function InputDrawer() {
         }
         setSubmitting(true);
         const { addUserLog } = await import('@/actions/data');
-        await addUserLog({
+        const result = await addUserLog({
             id: uuidv4(),
             user_id: profile.id,
             food_name: data.food_name,
@@ -182,6 +183,11 @@ export function InputDrawer() {
             created_at: new Date().toISOString(),
         });
         setSubmitting(false);
+        if (result?.error) {
+            toast.error('Failed to save. Please try again.');
+            return;
+        }
+        toast.success(`${data.food_name} added`);
         handleOpenChange(false);
     };
 

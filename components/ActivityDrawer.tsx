@@ -19,6 +19,7 @@ import {
 import { ActivityLog } from '@/types';
 import { useStore } from '@/store/useStore';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
 
 export function ActivityDrawer() {
     const [isOpen, setIsOpen] = React.useState(false);
@@ -39,7 +40,7 @@ export function ActivityDrawer() {
         }
         setSubmitting(true);
         const { addActivityLog } = await import('@/actions/data');
-        await addActivityLog({
+        const result = await addActivityLog({
             id: uuidv4(),
             user_id: profile.id,
             activity_name: data.activity_name,
@@ -47,6 +48,11 @@ export function ActivityDrawer() {
             created_at: new Date().toISOString(),
         });
         setSubmitting(false);
+        if (result?.error) {
+            toast.error('Failed to save. Please try again.');
+            return;
+        }
+        toast.success(`${data.activity_name} logged — ${data.calories_burned} cal burned`);
         handleOpenChange(false);
     };
 

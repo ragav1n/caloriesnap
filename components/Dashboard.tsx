@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { deleteUserLog } from '@/actions/data';
 import { Log } from '@/types';
+import { toast } from 'sonner';
 
 // Dynamic Imports for Heavy Components
 const CalorieBudgetRing = dynamic(() => import('@/components/CalorieBudgetRing').then(mod => mod.CalorieBudgetRing), { ssr: false });
@@ -43,8 +44,15 @@ interface MealSectionProps {
 }
 
 const MealSection = memo(function MealSection({ title, type, icon: Icon, goal, mealLogs }: MealSectionProps) {
-    const cals = mealLogs.reduce((acc, l) => acc + l.calories, 0);
+    const cals = Math.round(mealLogs.reduce((acc, l) => acc + l.calories, 0));
     const [isOpen, setIsOpen] = React.useState(false);
+
+    const handleDelete = async (id: string) => {
+        const result = await deleteUserLog(id);
+        if (result?.error) {
+            toast.error('Failed to delete. Please try again.');
+        }
+    };
 
     return (
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -88,7 +96,7 @@ const MealSection = memo(function MealSection({ title, type, icon: Icon, goal, m
                                             <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-xl border-white/10 shadow-2xl rounded-xl p-1 min-w-[120px]">
                                                 <DropdownMenuItem
                                                     className="text-red-500 font-semibold focus:text-red-400 focus:bg-destructive/10 rounded-lg cursor-pointer"
-                                                    onClick={() => deleteUserLog(log.id)}
+                                                    onClick={() => handleDelete(log.id)}
                                                 >
                                                     Delete Log
                                                 </DropdownMenuItem>
