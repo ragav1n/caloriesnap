@@ -7,7 +7,7 @@ import { Log, Profile, ActivityLog } from '@/types';
 // OR we can import the store directly if we want to centralize logic.
 // Zustand store can be used outside components via getState() / setState()
 
-import { FoodLogSchema } from '@/lib/schemas';
+import { FoodLogSchema, ActivityLogSchema } from '@/lib/schemas';
 
 // ... (helper comments)
 
@@ -27,9 +27,8 @@ export const addUserLog = async (log: Log) => {
         return { error };
     }
 
-    // specific to Zustand: we can update it here directly
     useStore.getState().addLog(log);
-    { return { success: true }; }
+    return { success: true };
 };
 
 export const deleteUserLog = async (id: string) => {
@@ -45,12 +44,14 @@ export const deleteUserLog = async (id: string) => {
 };
 
 export const addActivityLog = async (log: ActivityLog) => {
-    // Basic validation
-    if (!log.activity_name || log.calories_burned < 0) {
-        return { error: "Invalid activity data" };
+    const validation = ActivityLogSchema.safeParse(log);
+
+    if (!validation.success) {
+        console.error('Validation Error:', validation.error.flatten());
+        return { error: validation.error.errors[0].message };
     }
 
-    const { error } = await supabase.from('activity_logs').insert([log]);
+    const { error } = await supabase.from('activity_logs').insert([validation.data]);
 
     if (error) {
         console.error('Error adding activity log:', JSON.stringify(error, null, 2));

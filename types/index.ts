@@ -27,9 +27,9 @@ export interface Log {
 export interface FoodItem {
     food_name: string;
     calories: number;
-    protein?: number;
-    carbs?: number;
-    fats?: number;
+    protein: number;
+    carbs: number;
+    fats: number;
     confidence?: string;
     portion_note?: string;
 }

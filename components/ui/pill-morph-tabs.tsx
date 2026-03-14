@@ -21,6 +21,7 @@ export interface PillTab {
 interface PillMorphTabsProps {
   items?: PillTab[];
   defaultValue?: string;
+  value?: string;
   onValueChange?: (value: string) => void;
   className?: string;
   hidePanels?: boolean;
@@ -42,12 +43,18 @@ export default function PillMorphTabs({
     { value: "faq", label: "FAQ", panel: <div>FAQ content</div> },
   ],
   defaultValue,
+  value: controlledValue,
   onValueChange,
   className,
   hidePanels,
 }: PillMorphTabsProps) {
   const first = items[0]?.value ?? "tab-0";
-  const [value, setValue] = React.useState<string>(defaultValue ?? first);
+  const [value, setValue] = React.useState<string>(controlledValue ?? defaultValue ?? first);
+
+  // Sync with controlled value when parent changes it
+  React.useEffect(() => {
+    if (controlledValue !== undefined) setValue(controlledValue);
+  }, [controlledValue]);
   const listRef = React.useRef<HTMLDivElement | null>(null);
   const triggerRefs = React.useRef<Record<string, HTMLButtonElement | null>>({});
 

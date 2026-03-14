@@ -20,7 +20,7 @@ export function SettingsDialog() {
     const { profile, setProfile } = useStore();
     const [open, setOpen] = React.useState(false);
 
-    const { register, handleSubmit, reset } = useForm({
+    const { register, handleSubmit, reset, watch } = useForm({
         defaultValues: {
             full_name: profile?.full_name || '',
             daily_calorie_goal: profile?.daily_calorie_goal || 2000,
@@ -103,7 +103,7 @@ export function SettingsDialog() {
 
     const handleAutoDistribute = (e: React.MouseEvent) => {
         e.preventDefault();
-        const total = parseInt(document.querySelector<HTMLInputElement>('#daily_calorie_goal')?.value || '2000');
+        const total = parseInt(String(watch('daily_calorie_goal') || 2000));
 
         // Distribution: 25% Breakfast, 35% Lunch, 30% Dinner, 10% Snack
         const b = Math.round(total * 0.25);

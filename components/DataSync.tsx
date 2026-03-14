@@ -9,18 +9,15 @@ export function DataSync() {
     const setProfile = useStore((state) => state.setProfile);
     const setLogs = useStore((state) => state.setLogs);
     const setActivityLogs = useStore((state) => state.setActivityLogs);
+    const setIsLoading = useStore((state) => state.setIsLoading);
 
     useEffect(() => {
-        const syncData = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (!user) return; // Middleware should handle redirect, but safe check
-
-            // 1. Fetch Profile
+        const syncData = async (userId: string) => {
+            // Fetch Profile
             const { data: profileData, error: profileError } = await supabase
                 .from('profiles')
                 .select('*')
-                .eq('id', user.id)
+                .eq('id', userId)
                 .single();
 
             if (profileData) {
@@ -29,11 +26,11 @@ export function DataSync() {
                 console.error('Error fetching profile:', profileError);
             }
 
-            // 2. Fetch Logs
+            // Fetch Logs
             const { data: logsData, error: logsError } = await supabase
                 .from('logs')
                 .select('*')
-                .eq('user_id', user.id)
+                .eq('user_id', userId)
                 .order('created_at', { ascending: false });
 
             if (logsData) {
@@ -41,11 +38,12 @@ export function DataSync() {
             } else if (logsError) {
                 console.error('Error fetching logs:', logsError);
             }
-            // 3. Fetch Activity Logs
+
+            // Fetch Activity Logs
             const { data: activityLogsData, error: activityLogsError } = await supabase
                 .from('activity_logs')
                 .select('*')
-                .eq('user_id', user.id)
+                .eq('user_id', userId)
                 .order('created_at', { ascending: false });
 
             if (activityLogsData) {
@@ -53,10 +51,26 @@ export function DataSync() {
             } else if (activityLogsError) {
                 console.error('Error fetching activity logs:', activityLogsError);
             }
+
+            setIsLoading(false);
         };
 
-        syncData();
-    }, [setProfile, setLogs, setActivityLogs]);
+        // Initial sync
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) syncData(user.id);
+            else setIsLoading(false);
+        });
 
-    return null; // This component renders nothing
+        // Re-sync on auth state changes (e.g. token refresh, user switch)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session?.user) {
+                setIsLoading(true);
+                syncData(session.user.id);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [setProfile, setLogs, setActivityLogs, setIsLoading]);
+
+    return null;
 }

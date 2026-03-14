@@ -14,3 +14,13 @@ export const FoodLogSchema = z.object({
 });
 
 export type FoodLogInput = z.infer<typeof FoodLogSchema>;
+
+export const ActivityLogSchema = z.object({
+    id: z.string().uuid(),
+    user_id: z.string().uuid(),
+    activity_name: z.string().min(1, { message: "Activity name is required" }).max(100),
+    calories_burned: z.number().min(0, { message: "Calories burned cannot be negative" }).max(10000),
+    created_at: z.string().datetime(),
+});
+
+export type ActivityLogInput = z.infer<typeof ActivityLogSchema>;

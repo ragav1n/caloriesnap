@@ -30,6 +30,8 @@ export async function analyzeImage(formData: FormData): Promise<FoodItem | null>
     try {
         const file = formData.get('image') as File;
         if (!file) throw new Error("No image file provided");
+        if (!file.type.startsWith('image/')) throw new Error("File must be an image");
+        if (file.size > 10 * 1024 * 1024) throw new Error("Image must be under 10MB");
 
         const arrayBuffer = await file.arrayBuffer();
         const base64Image = Buffer.from(arrayBuffer).toString('base64');
@@ -90,7 +92,12 @@ If confidence is low, return your best estimate anyway — never return zero val
         
         const cleanJson = text.replace(/```json|```/g, "").trim();
 
-        return JSON.parse(cleanJson) as FoodItem;
+        try {
+            return JSON.parse(cleanJson) as FoodItem;
+        } catch {
+            console.error('Failed to parse Gemini response as JSON:', cleanJson);
+            return null;
+        }
 
     } catch (error) {
         console.error('Gemini Analysis Error:', error);

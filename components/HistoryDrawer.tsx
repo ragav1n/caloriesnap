@@ -62,7 +62,6 @@ export function HistoryDrawer() {
     // Fetch details for a specific day
     const fetchDayDetails = async (day: Date) => {
         setLoading(true);
-        // Set range for the whole day
         const start = new Date(day);
         start.setHours(0, 0, 0, 0);
         const end = new Date(day);
@@ -75,10 +74,14 @@ export function HistoryDrawer() {
             .lte('created_at', end.toISOString())
             .order('created_at', { ascending: true });
 
-        if (data) {
-            setSelectedDayLogs(data);
-            setView('details');
+        if (error) {
+            console.error('Error fetching day details:', error);
+            setLoading(false);
+            return;
         }
+
+        setSelectedDayLogs(data || []);
+        setView('details');
         setLoading(false);
     };
 
@@ -129,7 +132,7 @@ export function HistoryDrawer() {
             <DrawerContent className="h-[90vh]">
                 <DrawerHeader className="text-left px-6 pt-6">
                     <DrawerTitle className="text-2xl font-bold">
-                        {view === 'calendar' ? 'History' : format(date!, 'MMMM d')}
+                        {view === 'calendar' ? 'History' : date ? format(date, 'MMMM d') : 'Details'}
                     </DrawerTitle>
                     <DrawerDescription>
                         {view === 'calendar'
@@ -196,21 +199,41 @@ export function HistoryDrawer() {
                                     <div className="space-y-3">
                                         {selectedDayLogs.map((log) => (
                                             <div key={log.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
-                                                <div>
-                                                    <div className="font-medium text-sm">{log.food_name}</div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-medium text-sm truncate">{log.food_name}</div>
                                                     <div className="text-xs text-muted-foreground capitalize">{log.meal_type}</div>
                                                 </div>
-                                                <div className="text-right">
+                                                <div className="text-right ml-3 shrink-0">
                                                     <div className="font-bold text-sm">{log.calories} kcal</div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        P {log.protein}g · C {log.carbs}g · F {log.fats}g
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}
-                                        <div className="pt-4 border-t mt-4">
-                                            <div className="flex justify-between font-bold">
-                                                <span>Total</span>
-                                                <span>{selectedDayLogs.reduce((acc, l) => acc + l.calories, 0)} kcal</span>
-                                            </div>
-                                        </div>
+                                        {(() => {
+                                            const totals = selectedDayLogs.reduce(
+                                                (acc, l) => ({ cal: acc.cal + l.calories, p: acc.p + l.protein, c: acc.c + l.carbs, f: acc.f + l.fats }),
+                                                { cal: 0, p: 0, c: 0, f: 0 }
+                                            );
+                                            return (
+                                                <div className="pt-4 border-t mt-4 space-y-2">
+                                                    <div className="flex justify-between font-bold">
+                                                        <span>Total</span>
+                                                        <span>{totals.cal} kcal</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                                        <span>Protein</span><span>{Number(totals.p.toFixed(1))}g</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                                        <span>Carbs</span><span>{Number(totals.c.toFixed(1))}g</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                                        <span>Fats</span><span>{Number(totals.f.toFixed(1))}g</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 )}
                             </ScrollArea>
