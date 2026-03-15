@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useStore } from '@/store/useStore';
 import { Profile, Log, ActivityLog } from '@/types';
+import { toast } from 'sonner';
 
 export function DataSync() {
     const setProfile = useStore((state) => state.setProfile);
@@ -24,6 +25,7 @@ export function DataSync() {
                 setProfile(profileData as Profile);
             } else if (profileError) {
                 console.error('Error fetching profile:', profileError);
+                toast.error('Failed to load your profile. Please refresh.');
             }
 
             // Fetch Logs
@@ -37,6 +39,7 @@ export function DataSync() {
                 setLogs(logsData as Log[]);
             } else if (logsError) {
                 console.error('Error fetching logs:', logsError);
+                toast.error('Failed to load food logs. Please refresh.');
             }
 
             // Fetch Activity Logs
@@ -50,6 +53,7 @@ export function DataSync() {
                 setActivityLogs(activityLogsData as ActivityLog[]);
             } else if (activityLogsError) {
                 console.error('Error fetching activity logs:', activityLogsError);
+                toast.error('Failed to load activity logs. Please refresh.');
             }
 
             setIsLoading(false);

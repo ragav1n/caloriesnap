@@ -4,7 +4,12 @@ import * as React from 'react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { format, parseISO } from 'date-fns'
 
-export function GlowingTrendChart({ data, type }: { data: any[], type: 'week' | 'month' }) {
+interface TrendDataPoint {
+  date: string;
+  calories: number;
+}
+
+export function GlowingTrendChart({ data, type }: { data: TrendDataPoint[], type: 'week' | 'month' }) {
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {

@@ -46,7 +46,15 @@ export function InputDrawer() {
 
     // Manual form
     const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<FoodItem>();
-    const [selectedMeal, setSelectedMeal] = React.useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('snack');
+    const getDefaultMeal = (): 'breakfast' | 'lunch' | 'dinner' | 'snack' => {
+        const h = new Date().getHours();
+        if (h >= 5 && h < 10) return 'breakfast';
+        if (h >= 10 && h < 15) return 'lunch';
+        if (h >= 15 && h < 20) return 'dinner';
+        return 'snack';
+    };
+
+    const [selectedMeal, setSelectedMeal] = React.useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>(getDefaultMeal);
     const [submitting, setSubmitting] = React.useState(false);
 
     // Revoke blob URLs when capturedImage changes to prevent memory leaks
@@ -69,6 +77,7 @@ export function InputDrawer() {
             setCapturedImage(null);
             setAiError(null);
             setAiFilledFood(null);
+            setSelectedMeal(getDefaultMeal());
             reset();
         }
     };
@@ -138,19 +147,20 @@ export function InputDrawer() {
             const result = await analyzeImage(formData);
 
             if (result) {
+                // Fill form regardless of confidence — always give user something to work with
+                setValue('food_name', result.food_name);
+                setValue('calories', result.calories);
+                setValue('protein', result.protein || 0);
+                setValue('carbs', result.carbs || 0);
+                setValue('fats', result.fats || 0);
+                setAiFilledFood(result.food_name);
+
                 if (result.confidence?.toLowerCase() === 'low') {
-                    setCapturedImage(null);
-                    setAiError('Confidence is too low. Please retake the photo with better lighting or a clearer angle.');
-                } else {
-                    setValue('food_name', result.food_name);
-                    setValue('calories', result.calories);
-                    setValue('protein', result.protein || 0);
-                    setValue('carbs', result.carbs || 0);
-                    setValue('fats', result.fats || 0);
-                    setAiFilledFood(result.food_name);
-                    // Switch to Manual tab so user can see and edit the filled values
-                    setActiveTab('manual');
+                    setAiError('Low confidence — values may be inaccurate. Please review before adding.');
                 }
+
+                // Switch to Manual tab so user can see and edit the filled values
+                setActiveTab('manual');
             } else {
                 setCapturedImage(null);
                 setAiError('Could not identify food. Please try again or enter manually.');
@@ -213,7 +223,7 @@ export function InputDrawer() {
                         <Label className="text-sm font-medium text-muted-foreground ml-1">Meal Type</Label>
                         <FluidDropdown
                             value={selectedMeal}
-                            onSelect={(item) => setSelectedMeal(item.id as any)}
+                            onSelect={(item) => setSelectedMeal(item.id as 'breakfast' | 'lunch' | 'dinner' | 'snack')}
                             items={[
                                 { id: 'breakfast', label: 'Breakfast', icon: Coffee, color: '#f59e0b' },
                                 { id: 'lunch', label: 'Lunch', icon: Sun, color: '#fbbf24' },

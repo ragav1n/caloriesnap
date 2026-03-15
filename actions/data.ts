@@ -17,7 +17,7 @@ export const addUserLog = async (log: Log) => {
 
     if (!validation.success) {
         console.error('Validation Error:', validation.error.flatten());
-        return { error: validation.error.errors[0].message };
+        return { error: validation.error.errors.map(e => e.message).join(', ') };
     }
 
     const { error } = await supabase.from('logs').insert([validation.data]);
@@ -48,7 +48,7 @@ export const addActivityLog = async (log: ActivityLog) => {
 
     if (!validation.success) {
         console.error('Validation Error:', validation.error.flatten());
-        return { error: validation.error.errors[0].message };
+        return { error: validation.error.errors.map(e => e.message).join(', ') };
     }
 
     const { error } = await supabase.from('activity_logs').insert([validation.data]);

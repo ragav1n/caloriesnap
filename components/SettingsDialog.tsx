@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Settings } from 'lucide-react';
 
 export function SettingsDialog() {
-    const { profile, setProfile } = useStore();
+    const profile = useStore((state) => state.profile);
     const [open, setOpen] = React.useState(false);
 
     const { register, handleSubmit, reset, watch } = useForm({
@@ -60,45 +60,34 @@ export function SettingsDialog() {
         const mealsTotal = Number(data.breakfast_goal) + Number(data.lunch_goal) + Number(data.dinner_goal) + Number(data.snack_goal);
 
         if (mealsTotal !== total) {
-            setError(`Meal goals sum to ${mealsTotal}, but daily total is ${total}. Please adjust.`);
+            setError(
+                `Meal goals (Breakfast ${Number(data.breakfast_goal)} + Lunch ${Number(data.lunch_goal)} + Dinner ${Number(data.dinner_goal)} + Snacks ${Number(data.snack_goal)} = ${mealsTotal}) must equal daily goal (${total}).`
+            );
             return;
         }
 
         setError(null);
 
-        // Dynamic import
         const { updateUserProfile } = await import('@/actions/data');
 
-        try {
-            await updateUserProfile(profile.id, {
-                full_name: data.full_name,
-                daily_calorie_goal: Number(data.daily_calorie_goal),
-                protein_goal: Number(data.protein_goal),
-                carbs_goal: Number(data.carbs_goal),
-                fats_goal: Number(data.fats_goal),
-                breakfast_goal: Number(data.breakfast_goal),
-                lunch_goal: Number(data.lunch_goal),
-                dinner_goal: Number(data.dinner_goal),
-                snack_goal: Number(data.snack_goal),
-            });
-            // Update local store after successful API call
-            setProfile({
-                ...profile,
-                full_name: data.full_name,
-                daily_calorie_goal: Number(data.daily_calorie_goal),
-                protein_goal: Number(data.protein_goal),
-                carbs_goal: Number(data.carbs_goal),
-                fats_goal: Number(data.fats_goal),
-                breakfast_goal: Number(data.breakfast_goal),
-                lunch_goal: Number(data.lunch_goal),
-                dinner_goal: Number(data.dinner_goal),
-                snack_goal: Number(data.snack_goal),
-            });
-            setOpen(false); // Close dialog on success
-        } catch (err) {
-            console.error("Failed to update user profile:", err);
+        const result = await updateUserProfile(profile.id, {
+            full_name: data.full_name,
+            daily_calorie_goal: Number(data.daily_calorie_goal),
+            protein_goal: Number(data.protein_goal),
+            carbs_goal: Number(data.carbs_goal),
+            fats_goal: Number(data.fats_goal),
+            breakfast_goal: Number(data.breakfast_goal),
+            lunch_goal: Number(data.lunch_goal),
+            dinner_goal: Number(data.dinner_goal),
+            snack_goal: Number(data.snack_goal),
+        });
+
+        if (result?.error) {
             setError("Failed to save changes. Please try again.");
+            return;
         }
+
+        setOpen(false);
     };
 
     const handleAutoDistribute = (e: React.MouseEvent) => {

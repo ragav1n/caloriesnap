@@ -11,7 +11,7 @@ import {
     DrawerTrigger,
 } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, ChevronLeft, Trash2 } from 'lucide-react';
+import { CalendarDays, ChevronLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useStore } from '@/store/useStore';
 import { Log } from '@/types';
@@ -52,7 +52,7 @@ export function HistoryDrawer() {
 
         if (data) {
             const map: Record<string, number> = {};
-            data.forEach((d: any) => {
+            data.forEach((d: DailySummary) => {
                 map[d.date_log] = d.total_calories;
             });
             setSummaries(map);
@@ -70,6 +70,7 @@ export function HistoryDrawer() {
         const { data, error } = await supabase
             .from('logs')
             .select('*')
+            .eq('user_id', profile?.id)
             .gte('created_at', start.toISOString())
             .lte('created_at', end.toISOString())
             .order('created_at', { ascending: true });
@@ -118,7 +119,7 @@ export function HistoryDrawer() {
             if (dateKey > todayKey) return false;
 
             const total = summaries[dateKey];
-            return total !== undefined && total <= (profile?.daily_calorie_goal || 2000);
+            return total !== undefined && total > 0 && total <= (profile?.daily_calorie_goal || 2000);
         }
     };
 
